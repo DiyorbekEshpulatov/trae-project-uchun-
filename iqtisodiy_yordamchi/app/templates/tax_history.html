@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soliq Hisobotlari Tarixi</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .card { margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: none; border-radius: 8px; }
+        .status-success { color: #198754; font-weight: 600; }
+        .status-error { color: #dc3545; font-weight: 600; }
+        .badge-tax { background-color: #e7f1ff; color: #0d6efd; }
+        .navbar { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-dark mb-4">
+        <div class="container">
+            <a class="navbar-brand" href="/dashboard">
+                <i class="bi bi-file-earmark-text me-2"></i>SMART SAVDO - Soliq Tarixi
+            </a>
+            <a href="/dashboard" class="btn btn-outline-light btn-sm">Dashboardga qaytish</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="card">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                <h5 class="mb-0 text-primary">Yuborilgan Hisobotlar</h5>
+                <button class="btn btn-primary btn-sm" onclick="loadHistory()">
+                    <i class="bi bi-arrow-clockwise"></i> Yangilash
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle" id="historyTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>Sana</th>
+                                <th>Hisobot Turi</th>
+                                <th>Nomi</th>
+                                <th>Natija</th>
+                                <th>Amallar</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Data will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+                <nav class="mt-4">
+                    <ul class="pagination justify-content-center" id="pagination"></ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="detailModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Hisobot Tafsilotlari</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <pre id="jsonViewer" class="bg-light p-3 border rounded" style="max-height: 500px; overflow: auto;"></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentPage = 1;
+
+        async function loadHistory(page = 1) {
+            currentPage = page;
+            try {
+                const response = await fetch(`/api/tax/history?page=${page}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const tbody = document.querySelector('#historyTable tbody');
+                    tbody.innerHTML = '';
+                    
+                    data.reports.forEach(report => {
+                        const date = new Date(report.created_at).toLocaleString('uz-UZ');
+                        const isSuccess = report.data && report.data.success;
+                        const statusClass = isSuccess ? 'status-success' : 'status-error';
+                        const statusText = isSuccess ? 'Muvaffaqiyatli' : 'Xato';
+                        
+                        const row = `
+                            <tr>
+                                <td>#${report.id}</td>
+                                <td>${date}</td>
+                                <td><span class="badge badge-tax">${report.type}</span></td>
+                                <td>${report.title}</td>
+                                <td class="${statusClass}">${statusText}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary" 
+                                            onclick='showDetails(${JSON.stringify(report.data)})'>
+                                        Ko'rish
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                        tbody.innerHTML += row;
+                    });
+                    
+                    renderPagination(data.total, data.pages, data.current_page);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                // alert('Tarixni yuklashda xatolik yuz berdi');
+            }
+        }
+
+        function renderPagination(total, pages, current) {
+            const pagination = document.getElementById('pagination');
+            pagination.innerHTML = '';
+            
+            if (pages <= 1) return;
+            
+            for (let i = 1; i <= pages; i++) {
+                const li = document.createElement('li');
+                li.className = `page-item ${i === current ? 'active' : ''}`;
+                li.innerHTML = `<a class="page-link" href="#" onclick="loadHistory(${i})">${i}</a>`;
+                pagination.appendChild(li);
+            }
+        }
+
+        function showDetails(data) {
+            document.getElementById('jsonViewer').textContent = JSON.stringify(data, null, 2);
+            new bootstrap.Modal(document.getElementById('detailModal')).show();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => loadHistory());
+    </script>
+</body>
+</html>

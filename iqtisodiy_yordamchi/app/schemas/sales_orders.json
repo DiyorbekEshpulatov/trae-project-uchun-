@@ -1,0 +1,62 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Sales Orders",
+  "type": "object",
+  "properties": {
+    "sales_orders": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "number": {
+            "type": "string",
+            "description": "Order number/reference"
+          },
+          "customer_id": {
+            "type": "integer",
+            "description": "Customer identifier"
+          },
+          "order_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Order date YYYY-MM-DD"
+          },
+          "total_amount": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Total order amount"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["Yangi", "Tasdiqlangan", "Etkazilmoqda", "Tugallangan"],
+            "description": "Order status"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "product_id": {
+                  "type": "integer"
+                },
+                "quantity": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "unit_price": {
+                  "type": "number",
+                  "minimum": 0
+                }
+              },
+              "required": ["product_id", "quantity", "unit_price"]
+            },
+            "minItems": 1
+          }
+        },
+        "required": ["number", "customer_id", "order_date", "items"]
+      },
+      "minItems": 1
+    }
+  },
+  "required": ["sales_orders"]
+}

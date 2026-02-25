@@ -1,0 +1,127 @@
+"""
+Reports models - XBRL va standartlar | XBRL и стандарты | XBRL and standards
+"""
+
+from django.db import models
+from parler.models import TranslatableModel, TranslatedFields
+
+class FinancialReport(TranslatableModel):
+    """
+    Moliyaviy hisobotlar | Финансовые отчеты | Financial reports
+    XBRL formatga mos | Соответствует XBRL | XBRL compliant
+    """
+    
+    REPORT_TYPES = [
+        ('balance', 'Balans | Баланс | Balance Sheet'),
+        ('income', 'Daromad | Доходы | Income Statement'),
+        ('cashflow', 'Pul oqimi | Движение денежных средств | Cash Flow'),
+        ('equity', 'Kapital | Капитал | Equity'),
+        ('notes', 'Izohlar | Примечания | Notes'),
+    ]
+    
+    PERIODS = [
+        ('monthly', 'Oylik | Ежемесячно | Monthly'),
+        ('quarterly', 'Choraklik | Ежеквартально | Quarterly'),
+        ('annual', 'Yillik | Ежегодно | Annual'),
+    ]
+    
+    STANDARDS = [
+        ('ifrs', 'IFRS'),
+        ('uzmsfo', 'UzMSFO'),
+        ('xbrl', 'XBRL'),
+    ]
+    
+    report_type = models.CharField(max_length=20, choices=REPORT_TYPES)
+    period = models.CharField(max_length=20, choices=PERIODS)
+    standard = models.CharField(max_length=10, choices=STANDARDS, default='uzmsfo')
+    
+    # Hisobot davri
+    report_date = models.DateField()
+    period_start = models.DateField()
+    period_end = models.DateField()
+    
+    translations = TranslatedFields(
+        title=models.CharField(max_length=200),
+        description=models.TextField(blank=True),
+    )
+    
+    # XBRL ma'lumotlari
+    xbrl_taxonomy = models.CharField(max_length=100, blank=True)
+    xbrl_instance = models.TextField(blank=True)  # XBRL XML
+    xbrl_validation_status = models.CharField(max_length=20, default='pending')
+    
+    # Soliq.uz integratsiyasi
+    soliq_uz_submitted = models.BooleanField(default=False)
+    soliq_uz_submission_date = models.DateTimeField(null=True, blank=True)
+    soliq_uz_response = models.JSONField(null=True, blank=True)
+    
+    # Asosiy ko'rsatkichlar
+    total_assets = models.DecimalField(max_digits=20, decimal_places=2, default=0)
+    total_liabilities = models.DecimalField(max_digits=20, decimal_places=2, default=0)
+    total_equity = models.DecimalField(max_digits=20, decimal_places=2, default=0)
+    revenue = models.DecimalField(max_digits=20, decimal_places=2, default=0)
+    net_profit = models.DecimalField(max_digits=20, decimal_places=2, default=0)
+    
+    created_by = models.ForeignKey('users.User', on_delete=models.SET_NULL, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        db_table = 'financial_reports'
+        ordering = ['-report_date']
+    
+    def __str__(self):
+        return f"{self.get_report_type_display()} - {self.report_date}"
+
+class TaxReport(models.Model):
+    """
+    Soliq hisobotlari | Налоговые отчеты | Tax reports
+    O'zbekiston Soliq kodeksiga mos | Соответствует НК Узбекистана | Uzbekistan Tax Code compliant
+    """
+    
+    TAX_TYPES = [
+        ('vat', 'QQS | НДС | VAT'),
+        ('profit', 'Foyda solig\'i | Налог на прибыль | Profit Tax'),
+        ('income', 'Daromad solig\'i | Подоходный налог | Income Tax'),
+        ('property', 'Mol-mulk | Имущественный | Property Tax'),
+        ('land', 'Yer | Земельный | Land Tax'),
+        ('water', 'Suv | Водный | Water Tax'),
+    ]
+    
+    tax_type = models.CharField(max_length=20, choices=TAX_TYPES)
+    period = models.CharField(max_length=7)  # 2024-01 format
+    
+    # Soliq hisoblash
+    taxable_base = models.DecimalField(max_digits=20, decimal_places=2)
+    tax_rate = models.DecimalField(max_digits=5, decimal_places=2)  # 12.00
+    tax_amount = models.DecimalField(max_digits=20, decimal_places=2)
+    tax_deductions = models.DecimalField(max_digits=20, decimal_places=2, default=0)
+    tax_payable = models.DecimalField(max_digits=20, decimal_places=2)
+    
+    # XBRL formatda
+    xbrl_data = models.JSONField(null=True, blank=True)
+    
+    # Soliq.uz status
+    STATUS_CHOICES = [
+        ('draft', 'Qoralama | Черновик | Draft'),
+        ('ready', 'Tayyor | Готов | Ready'),
+        ('submitted', 'Yuborilgan | Отправлен | Submitted'),
+        ('accepted', 'Qabul qilingan | Принят | Accepted'),
+        ('rejected', 'Rad etilgan | Отклонен | Rejected'),
+    ]
+    
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
+    
+    # AI tahlili
+    ai_analysis = models.TextField(blank=True)
+    ai_recommendations = models.TextField(blank=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        db_table = 'tax_reports'
+    
+    def calculate_tax(self):
+        """Soliq hisoblash | Расчет налога | Tax calculation"""
+        self.tax_amount = (self.taxable_base * self.tax_rate) / 100
+        self.tax_payable = self.tax_amount - self.tax_deductions
+        return self.tax_payable

@@ -1,0 +1,250 @@
+"""
+Gemini AI Services | Сервисы Gemini AI | Gemini AI Services
+"""
+
+import os
+import google.generativeai as genai
+from django.conf import settings
+from typing import Dict, List, Optional
+import json
+
+class GeminiService:
+    """
+    Google Gemini AI integratsiyasi | Интеграция Google Gemini AI | Google Gemini AI integration
+    """
+    
+    def __init__(self):
+        genai.configure(api_key=settings.GEMINI_API_KEY)
+        self.model = genai.GenerativeModel(settings.GEMINI_MODEL)
+        
+        # Tillar uchun promptlar | Промпты для языков | Language prompts
+        self.system_prompts = {
+            'uz': """Siz O'zbekiston bizneslari uchun AI yordamchisiz.
+            Soliq kodeksi, buxgalteriya standartlari va moliyaviy qoidalarni bilasiz.
+            Javoblarni o'zbek tilida, aniq va qisqa bering.""",
+            
+            'ru': """Вы ИИ-помощник для бизнеса Узбекистана.
+            Знаете налоговый кодекс, бухгалтерские стандарты и финансовые правила.
+            Отвечайте на русском языке, четко и кратко.""",
+            
+            'en': """You are an AI assistant for Uzbekistan businesses.
+            You know tax codes, accounting standards and financial rules.
+            Answer in English, clearly and concisely."""
+        }
+    
+    def chat(self, message: str, language: str = 'uz', context: Dict = None) -> Dict:
+        """
+        Suhbat | Чат | Chat
+        """
+        try:
+            prompt = self.system_prompts.get(language, self.system_prompts['uz'])
+            
+            if context:
+                prompt += f"\n\nContext: {json.dumps(context, ensure_ascii=False)}"
+            
+            prompt += f"\n\nUser: {message}"
+            
+            response = self.model.generate_content(prompt)
+            
+            return {
+                'success': True,
+                'response': response.text,
+                'language': language,
+                'model': settings.GEMINI_MODEL
+            }
+            
+        except Exception as e:
+            return {
+                'success': False,
+                'error': str(e),
+                'language': language
+            }
+    
+    def analyze_financial_report(self, data: Dict, language: str = 'uz') -> Dict:
+        """
+        Moliyaviy hisobot tahlili | Анализ финансового отчета | Financial report analysis
+        XBRL va IFRS standartlariga mos | Соответствует XBRL и IFRS | XBRL and IFRS compliant
+        """
+        try:
+            prompts = {
+                'uz': f"""Quyidagi moliyaviy hisobotni tahlil qiling:
+                {json.dumps(data, ensure_ascii=False)}
+                
+                Quyidagilarni aniqlang:
+                1. Umumiy moliyaviy holat
+                2. Daromadlar va xarajatlar dinamikasi
+                3. Soliq yuklamasi tahlili
+                4. XBRL/IFRS standartlariga moslik
+                5. Tavsiyalar
+                
+                Javobni o'zbek tilida bering.""",
+                
+                'ru': f"""Проанализируйте следующий финансовый отчет:
+                {json.dumps(data, ensure_ascii=False)}
+                
+                Определите:
+                1. Общее финансовое состояние
+                2. Динамика доходов и расходов
+                3. Анализ налоговой нагрузки
+                4. Соответствие XBRL/IFRS
+                5. Рекомендации
+                
+                Ответьте на русском языке.""",
+                
+                'en': f"""Analyze the following financial report:
+                {json.dumps(data, ensure_ascii=False)}
+                
+                Identify:
+                1. Overall financial condition
+                2. Revenue and expense dynamics
+                3. Tax burden analysis
+                4. XBRL/IFRS compliance
+                5. Recommendations
+                
+                Answer in English."""
+            }
+            
+            prompt = prompts.get(language, prompts['uz'])
+            response = self.model.generate_content(prompt)
+            
+            return {
+                'success': True,
+                'analysis': response.text,
+                'language': language,
+                'standards': ['XBRL', 'IFRS', 'UzMSFO']
+            }
+            
+        except Exception as e:
+            return {
+                'success': False,
+                'error': str(e)
+            }
+    
+    def generate_tax_report(self, data: Dict, report_type: str, language: str = 'uz') -> Dict:
+        """
+        Soliq hisoboti yaratish | Создание налогового отчета | Tax report generation
+        O'zbekiston Soliq kodeksiga mos | Соответствует НК Узбекистана | Uzbekistan Tax Code compliant
+        """
+        try:
+            report_types = {
+                'vat': 'QQS (VAT) hisoboti',
+                'profit': 'Foyda solig\'i deklaratsiyasi',
+                'income': 'Daromad solig\'i hisoboti',
+                'property': 'Mol-mulk solig\'i'
+            }
+            
+            prompts = {
+                'uz': f"""O'zbekiston Soliq kodeksiga asoslangan {report_types.get(report_type)} tayyorlang.
+                
+                Ma'lumotlar: {json.dumps(data, ensure_ascii=False)}
+                
+                Quyidagi shaklda:
+                1. Umumiy ma'lumotlar
+                2. Hisobot davri
+                3. Soliq hisoblash
+                4. To'lanishi kerak bo'lgan summa
+                5. Soliq.uz ga yuborish uchun XBRL format
+                
+                Javobni o'zbek tilida bering.""",
+                
+                'ru': f"""Подготовьте {report_types.get(report_type)} согласно Налоговому кодексу Узбекистана.
+                
+                Данные: {json.dumps(data, ensure_ascii=False)}
+                
+                В следующем формате:
+                1. Общие сведения
+                2. Отчетный период
+                3. Расчет налога
+                4. Сумма к уплате
+                5. XBRL формат для Soliq.uz
+                
+                Ответьте на русском языке.""",
+                
+                'en': f"""Prepare {report_types.get(report_type)} according to Uzbekistan Tax Code.
+                
+                Data: {json.dumps(data, ensure_ascii=False)}
+                
+                In the following format:
+                1. General information
+                2. Reporting period
+                3. Tax calculation
+                4. Amount payable
+                5. XBRL format for Soliq.uz
+                
+                Answer in English."""
+            }
+            
+            prompt = prompts.get(language, prompts['uz'])
+            response = self.model.generate_content(prompt)
+            
+            return {
+                'success': True,
+                'report': response.text,
+                'report_type': report_type,
+                'language': language,
+                'compliance': 'Uzbekistan Tax Code 2024'
+            }
+            
+        except Exception as e:
+            return {
+                'success': False,
+                'error': str(e)
+            }
+    
+    def predict_sales(self, historical_data: List[Dict], language: str = 'uz') -> Dict:
+        """
+        Savdo bashorati | Прогноз продаж | Sales forecast
+        """
+        try:
+            prompts = {
+                'uz': f"""Quyidagi tarixiy savdo ma'lumotlariga asoslanib, 
+                keyingi 3 oy uchun bashorat qiling: {json.dumps(historical_data, ensure_ascii=False)}
+                
+                Oylik o'sish foizini hisoblang va tavsiyalar bering.""",
+                
+                'ru': f"""На основе следующих исторических данных о продажах,
+                сделайте прогноз на следующие 3 месяца: {json.dumps(historical_data, ensure_ascii=False)}
+                
+                Рассчитайте ежемесячный рост в процентах и дайте рекомендации.""",
+                
+                'en': f"""Based on the following historical sales data,
+                forecast the next 3 months: {json.dumps(historical_data, ensure_ascii=False)}
+                
+                Calculate monthly growth percentage and provide recommendations."""
+            }
+            
+            prompt = prompts.get(language, prompts['uz'])
+            response = self.model.generate_content(prompt)
+            
+            return {
+                'success': True,
+                'forecast': response.text,
+                'language': language
+            }
+            
+        except Exception as e:
+            return {
+                'success': False,
+                'error': str(e)
+            }
+    
+    def translate_content(self, content: str, target_language: str) -> str:
+        """
+        Kontent tarjima | Перевод контента | Content translation
+        """
+        try:
+            prompt = f"""Translate the following content to {target_language}.
+            Keep professional business terminology accurate.
+            
+            Content: {content}
+            
+            Provide only the translation, no explanations."""
+            
+            response = self.model.generate_content(prompt)
+            return response.text
+            
+        except Exception as e:
+            return content  # Xatolikda asl matnni qaytarish
+
+# Global service instance
+gemini_service = GeminiService()

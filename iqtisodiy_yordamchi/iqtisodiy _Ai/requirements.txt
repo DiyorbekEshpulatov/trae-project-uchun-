@@ -1,0 +1,56 @@
+# ==========================================
+# DJANGO ASOSIY | DJANGO CORE | DJANGO CORE
+# ==========================================
+
+Django==4.2.7
+djangorestframework==3.14.0
+django-cors-headers==4.3.0
+dj-database-url==2.1.0
+psycopg2-binary==2.9.9
+python-dotenv==1.0.0
+
+# ==========================================
+# CELERY VA REDIS | CELERY И REDIS | CELERY AND REDIS
+# ==========================================
+
+celery==5.3.4
+redis==5.0.1
+django-celery-beat==2.5.0
+
+# ==========================================
+# GEMINI AI | ГЕМИНИ ИИ | GEMINI AI
+# ==========================================
+
+google-generativeai==0.3.0
+
+# ==========================================
+# TELEGRAM BOT | ТЕЛЕГРАМ БОТ | TELEGRAM BOT
+# ==========================================
+
+aiogram==3.1.1
+
+# ==========================================
+# OCR VA RASM | OCR И ИЗОБРАЖЕНИЯ | OCR AND IMAGES
+# ==========================================
+
+pillow==10.1.0
+pytesseract==0.3.10
+pdf2image==1.16.3
+
+# ==========================================
+# XBRL VA HISOBOTLAR | XBRL И ОТЧЕТЫ | XBRL AND REPORTS
+# ==========================================
+
+arelle-release==2.17.0
+openpyxl==3.1.2
+reportlab==4.0.7
+
+# ==========================================
+# QO'SHIMCHA | ДОПОЛНИТЕЛЬНО | ADDITIONAL
+# ==========================================
+
+django-filter==23.3
+django-parler==2.3
+gunicorn==21.2.0
+whitenoise==6.6.0
+requests==2.31.0

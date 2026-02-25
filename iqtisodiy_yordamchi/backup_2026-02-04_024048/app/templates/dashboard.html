@@ -1,0 +1,597 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ERP Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    h2, h3 { color: #333; }
+    canvas { border: 1px solid #ddd; margin: 10px 0; }
+    #recommendations, #aiChat { background: #f9f9f9; padding: 15px; margin: 10px 0; border-radius: 5px; }
+    #aiChat input { padding: 8px; width: 80%; margin-right: 5px; }
+    #aiChat button { padding: 8px 15px; cursor: pointer; }
+    #aiResponse { margin-top: 10px; padding: 10px; background: #fff; border-left: 3px solid #4CAF50; }
+    ul { margin: 10px 0; padding-left: 20px; }
+    li { margin: 5px 0; }
+  </style>
+</head>
+<body>
+  <h1>ERP Dashboard</h1>
+  <h2>Realtime Sales</h2>
+  <canvas id="salesChart" width="800" height="300"></canvas>
+
+  <h3>Recommendations</h3>
+  <div id="recommendations">
+    <p>Loading recommendations...</p>
+  </div>
+
+  <h3>AI Assistant</h3>
+  <div id="aiChat">
+    <input type="text" id="aiQuestion" placeholder="Savol bering... (Ask a question)" />
+    <button onclick="askAI()">Yuborish</button>
+    <div id="aiResponse"></div>
+  </div>
+
+  <h3>Soliq Kabenitiga Hisobotlarni Yuborish</h3>
+  <div id="taxReports" style="background: #e8f5e9; padding: 15px; margin: 10px 0; border-radius: 5px;">
+    <p>Rasm: <input type="text" id="taxPeriod" placeholder="2026-02" value="2026-02" style="padding: 5px; width: 150px;"/></p>
+    
+    <label><input type="checkbox" id="includeSales" checked /> Savdo Hisoboti</label><br/>
+    <label><input type="checkbox" id="includeVat" checked /> KDV Hisoboti</label><br/>
+    <label><input type="checkbox" id="includePayroll" checked /> Oylik Hisoboti</label><br/>
+    <label><input type="checkbox" id="includeDeclaration" /> Soliq Deklaratsiyasi</label><br/>
+    
+    <button onclick="sendAllTaxReports()" style="
+      background: #2196F3; color: white; padding: 10px 20px; border: none; 
+      border-radius: 4px; cursor: pointer; margin-top: 10px; font-weight: bold;
+    ">📊 BARCHA HISOBOTLARNI YUBORISH</button>
+    
+    <div id="taxReportStatus" style="margin-top: 10px; padding: 10px; background: #fff; border-radius: 4px; min-height: 40px;">
+      Status: Tayyor...
+    </div>
+  </div>
+
+  <h3>Hujjatlarni Skanerlash (OCR)</h3>
+  <div id="ocrSection" style="background: #fff3e0; padding: 15px; margin: 10px 0; border-radius: 5px;">
+    <p>Hisob-faktura yoki qogozi hujjatni skanerlang va ma'lumotlarni avtomatik ajratib oling</p>
+    
+    <input type="file" id="ocrFile" accept=".jpg,.jpeg,.png,.pdf,.bmp" style="margin: 10px 0; padding: 5px;" />
+    
+    <div style="margin: 10px 0;">
+      <button onclick="extractInvoiceData()" style="
+        background: #FF9800; color: white; padding: 8px 15px; border: none; 
+        border-radius: 4px; cursor: pointer; margin-right: 5px;
+      ">📄 Hisob-fakturadan Ma'lumot Ajratish</button>
+      
+      <button onclick="extractText()" style="
+        background: #9C27B0; color: white; padding: 8px 15px; border: none; 
+        border-radius: 4px; cursor: pointer; margin-right: 5px;
+      ">📜 Matnni Ajratish</button>
+      
+      <button onclick="uploadMultipleFiles()" style="
+        background: #009688; color: white; padding: 8px 15px; border: none; 
+        border-radius: 4px; cursor: pointer;
+      ">📦 Bir nechta Fayllarni Yuklash</button>
+    </div>
+    
+    <div id="ocrResult" style="margin-top: 10px; padding: 10px; background: #fff; border-radius: 4px; min-height: 40px; display: none;">
+      <h4>Ajratilgan Ma'lumotlar:</h4>
+      <pre id="ocrResultContent" style="background: #f5f5f5; padding: 10px; overflow-x: auto;"></pre>
+    </div>
+  </div>
+
+  <h3>Excel Jadvallar va Hisobotlar</h3>
+  <div id="excelSection" style="background: #e8f5e9; padding: 15px; margin: 10px 0; border-radius: 5px;">
+    <p>Avtomatik jadvallar va hisobotlarni Excel'da yaratish</p>
+    
+    <div style="margin: 10px 0;">
+      <button onclick="generateSalesTable()" style="
+        background: #4CAF50; color: white; padding: 8px 15px; border: none; 
+        border-radius: 4px; cursor: pointer; margin: 5px;
+      ">📊 Savdo Jadvali</button>
+      
+      <button onclick="generatePurchaseTable()" style="
+        background: #FF9800; color: white; padding: 8px 15px; border: none; 
+        border-radius: 4px; cursor: pointer; margin: 5px;
+      ">📦 Sotib Olish Jadvali</button>
+      
+      <button onclick="generateInventoryTable()" style="
+        background: #2196F3; color: white; padding: 8px 15px; border: none; 
+        border-radius: 4px; cursor: pointer; margin: 5px;
+      ">📈 Inventar Jadvali</button>
+      
+      <button onclick="generateFinancialReport()" style="
+        background: #9C27B0; color: white; padding: 8px 15px; border: none; 
+        border-radius: 4px; cursor: pointer; margin: 5px;
+      ">💰 Moliyaviy Hisobot</button>
+      
+      <button onclick="generateCompleteReport()" style="
+        background: #f44336; color: white; padding: 8px 15px; border: none; 
+        border-radius: 4px; cursor: pointer; margin: 5px; font-weight: bold;
+      ">🎯 TO'LIQ HISOBOT (Barcha Jadvallar)</button>
+    </div>
+    
+    <div id="excelResult" style="margin-top: 10px; padding: 10px; background: #fff; border-radius: 4px; min-height: 40px; display: none;">
+      <h4>Natija:</h4>
+      <div id="excelResultContent"></div>
+    </div>
+  </div>
+
+  <h3>Avtomatik Formalar va Deklaratsiyalar</h3>
+  <div id="formsSection" style="background: #f3e5f5; padding: 15px; margin: 10px 0; border-radius: 5px;">
+    <p>Soliq, KDV, Oylik va boshqa formalarni avtomatik yaratish va to'ldirish</p>
+    
+    <p><strong>Davriy:</strong> <input type="text" id="formPeriod" placeholder="2026-02" value="2026-02" style="padding: 5px; width: 150px;"/></p>
+    
+    <div style="margin: 10px 0;">
+      <button onclick="generateAutoForms()" style="
+        background: #673AB7; color: white; padding: 10px 20px; border: none; 
+        border-radius: 4px; cursor: pointer; margin-right: 5px; font-weight: bold;
+      ">🔄 BARCHA FORMALARNI AVTOMATIK YARATISH</button>
+      
+      <button onclick="fillTaxForm()" style="
+        background: #E91E63; color: white; padding: 8px 15px; border: none; 
+        border-radius: 4px; cursor: pointer; margin: 5px;
+      ">📝 Soliq Deklaratsiyasi</button>
+      
+      <button onclick="fillVatForm()" style="
+        background: #00BCD4; color: white; padding: 8px 15px; border: none; 
+        border-radius: 4px; cursor: pointer; margin: 5px;
+      ">📋 KDV Formasi</button>
+      
+      <button onclick="fillPayrollForm()" style="
+        background: #009688; color: white; padding: 8px 15px; border: none; 
+        border-radius: 4px; cursor: pointer; margin: 5px;
+      ">👥 Oylik Hisoboti</button>
+    </div>
+    
+    <div id="formsResult" style="margin-top: 10px; padding: 10px; background: #fff; border-radius: 4px; min-height: 40px; display: none;">
+      <h4>Yaratilgan Formalar:</h4>
+      <pre id="formsResultContent" style="background: #f5f5f5; padding: 10px; overflow-x: auto; max-height: 300px;"></pre>
+    </div>
+  </div>
+    async function sendAllTaxReports() {
+      const statusDiv = document.getElementById('taxReportStatus');
+      statusDiv.innerHTML = '<p>⏳ Hisobotlar yuborilmoqda...</p>';
+      
+      try {
+        const period = document.getElementById('taxPeriod').value || new Date().toISOString().slice(0, 7);
+        const payload = {
+          period: period,
+          include_sales: document.getElementById('includeSales').checked,
+          include_vat: document.getElementById('includeVat').checked,
+          include_payroll: document.getElementById('includePayroll').checked,
+          include_declaration: document.getElementById('includeDeclaration').checked
+        };
+        
+        const response = await fetch('/api/tax/send-all-reports', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.all_success) {
+          statusDiv.innerHTML = `
+            <h4 style="color: #4CAF50;">✅ Barcha hisobotlar muvaffaqiyatli yuborildi!</h4>
+            <p><strong>Davriy:</strong> ${data.period}</p>
+            <ul>
+              ${data.reports.sales ? `<li>✅ Savdo: ${data.reports.sales.success ? 'OK' : 'Xato'}</li>` : ''}
+              ${data.reports.vat ? `<li>✅ KDV: ${data.reports.vat.success ? 'OK' : 'Xato'}</li>` : ''}
+              ${data.reports.payroll ? `<li>✅ Oylik: ${data.reports.payroll.success ? 'OK' : 'Xato'}</li>` : ''}
+              ${data.reports.declaration ? `<li>✅ Deklaratsiya: ${data.reports.declaration.success ? 'OK' : 'Xato'}</li>` : ''}
+            </ul>
+          `;
+          
+          // Telegram notifikatsiya
+          await fetch('/api/tax/send-telegram-notification', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: `Soliq hisobotlari (${period}) muvaffaqiyatli yuborildi` })
+          });
+        } else {
+          statusDiv.innerHTML = `
+            <h4 style="color: #f44336;">❌ Ba'zi hisobotlar yuborilmadi</h4>
+            <pre style="background: #f5f5f5; padding: 10px; overflow-x: auto;">
+${JSON.stringify(data, null, 2)}
+            </pre>
+          `;
+        }
+      } catch(error) {
+        statusDiv.innerHTML = `<p style="color: #f44336;">❌ Xato: ${error.message}</p>`;
+      }
+    }
+
+    // Tax status check
+    async function checkTaxStatus() {
+      try {
+        const res = await fetch('/api/tax/tax-status');
+        const data = await res.json();
+        console.log('Tax Status:', data);
+      } catch(e) {
+        console.error('Tax status error:', e);
+      }
+    }
+
+    // OCR Functions
+    async function extractInvoiceData() {
+      const fileInput = document.getElementById('ocrFile');
+      if (!fileInput.files.length) {
+        alert('Iltimos, fayl tanlang');
+        return;
+      }
+      
+      const formData = new FormData();
+      formData.append('file', fileInput.files[0]);
+      
+      try {
+        const res = await fetch('/api/ocr/extract-invoice', {
+          method: 'POST',
+          body: formData
+        });
+        
+        const data = await res.json();
+        const resultDiv = document.getElementById('ocrResult');
+        resultDiv.style.display = 'block';
+        
+        if (data.success) {
+          document.getElementById('ocrResultContent').textContent = JSON.stringify(data.data, null, 2);
+        } else {
+          document.getElementById('ocrResultContent').textContent = 'Xato: ' + data.error;
+        }
+      } catch(e) {
+        alert('OCR xatosi: ' + e.message);
+      }
+    }
+
+    async function extractText() {
+      const fileInput = document.getElementById('ocrFile');
+      if (!fileInput.files.length) {
+        alert('Iltimos, fayl tanlang');
+        return;
+      }
+      
+      const formData = new FormData();
+      formData.append('file', fileInput.files[0]);
+      formData.append('lang', 'uzb+eng');
+      
+      try {
+        const res = await fetch('/api/ocr/extract-text', {
+          method: 'POST',
+          body: formData
+        });
+        
+        const data = await res.json();
+        const resultDiv = document.getElementById('ocrResult');
+        resultDiv.style.display = 'block';
+        
+        if (data.success) {
+          document.getElementById('ocrResultContent').textContent = 
+            `📄 Matn:\n${data.text}\n\n📊 Ishonchlilik: ${(data.confidence * 100).toFixed(1)}%`;
+        } else {
+          document.getElementById('ocrResultContent').textContent = 'Xato: ' + data.error;
+        }
+      } catch(e) {
+        alert('OCR xatosi: ' + e.message);
+      }
+    }
+
+    async function uploadMultipleFiles() {
+      const fileInput = document.getElementById('ocrFile');
+      fileInput.click();
+      fileInput.onchange = async function() {
+        if (!fileInput.files.length) return;
+        
+        const formData = new FormData();
+        for (let file of fileInput.files) {
+          formData.append('files', file);
+        }
+        
+        try {
+          const res = await fetch('/api/ocr/batch-process', {
+            method: 'POST',
+            body: formData
+          });
+          
+          const data = await res.json();
+          const resultDiv = document.getElementById('ocrResult');
+          resultDiv.style.display = 'block';
+          
+          if (data.success) {
+            let summary = `📦 Batch Processing Natija\n\n`;
+            summary += `✅ Jami: ${data.total_processed}\n`;
+            summary += `✅ Muvaffaqiyatli: ${data.successful}\n`;
+            summary += `❌ Xato: ${data.failed}\n\n`;
+            summary += `Detallari:\n${JSON.stringify(data.results, null, 2)}`;
+            document.getElementById('ocrResultContent').textContent = summary;
+          } else {
+            document.getElementById('ocrResultContent').textContent = 'Xato: ' + data.error;
+          }
+        } catch(e) {
+          alert('Batch processing xatosi: ' + e.message);
+        }
+      };
+    }
+
+    // Initialize
+    checkTaxStatus();
+  </script>
+    async function loadData(){
+      const res = await fetch('/api/analytics/realtime');
+      const data = await res.json();
+      const ctx = document.getElementById('salesChart').getContext('2d');
+      const labels = (data.sales_over_time||[]).map(s=>s.date);
+      const values = (data.sales_over_time||[]).map(s=>s.total);
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Sales',
+            data: values,
+            borderColor: 'rgba(75, 192, 192, 1)',
+            backgroundColor: 'rgba(75, 192, 192, 0.2)'
+          }]
+        }
+      });
+
+      // load recommendations
+      const r = await fetch('/api/recommendations');
+      const rec = await r.json();
+      const container = document.getElementById('recommendations');
+      container.innerHTML = '';
+      if(rec.restock && rec.restock.length){
+        const h = document.createElement('h4'); h.textContent = 'Restock'; container.appendChild(h);
+        const ul = document.createElement('ul');
+        rec.restock.forEach(it=>{ const li=document.createElement('li'); li.textContent = `${it.name} (on hand ${it.on_hand}) need ${it.need}`; ul.appendChild(li); });
+        container.appendChild(ul);
+      }
+      if(rec.discounts && rec.discounts.length){
+        const h = document.createElement('h4'); h.textContent = 'Discount suggestions'; container.appendChild(h);
+        const ul = document.createElement('ul');
+        rec.discounts.forEach(it=>{ const li=document.createElement('li'); li.textContent = `${it.name} (on hand ${it.on_hand}) sold ${it.sold}`; ul.appendChild(li); });
+        container.appendChild(ul);
+      }
+      if(rec.automation && rec.automation.length){
+        const h = document.createElement('h4'); h.textContent = 'Automation'; container.appendChild(h);
+        const ul = document.createElement('ul');
+        rec.automation.forEach(it=>{ const li=document.createElement('li'); li.textContent = it.message; ul.appendChild(li); });
+        container.appendChild(ul);
+      }
+    }
+
+    async function askAI() {
+      const question = document.getElementById('aiQuestion').value.trim();
+      if(!question) return;
+      
+      const respDiv = document.getElementById('aiResponse');
+      respDiv.innerHTML = '<p>Loading...</p>';
+
+      try {
+        const r = await fetch(`/api/ai/ask?question=${encodeURIComponent(question)}`, {method: 'POST'});
+        const data = await r.json();
+        respDiv.innerHTML = `<strong>Javob:</strong> <p>${data.answer || data.message || 'No answer'}</p>`;
+        document.getElementById('aiQuestion').value = '';
+      } catch(e) {
+        respDiv.innerHTML = `<p style="color:red;">Error: ${e.message}</p>`;
+      }
+    }
+
+    loadData();
+
+    // Excel Functions
+    async function generateSalesTable() {
+      await generateExcelReport('sales', 'Savdo Jadvali');
+    }
+
+    async function generatePurchaseTable() {
+      await generateExcelReport('purchase', 'Sotib Olish Jadvali');
+    }
+
+    async function generateInventoryTable() {
+      await generateExcelReport('inventory', 'Inventar Jadvali');
+    }
+
+    async function generateFinancialReport() {
+      await generateExcelReport('financial', 'Moliyaviy Hisobot');
+    }
+
+    async function generateExcelReport(type, title) {
+      const resultDiv = document.getElementById('excelResult');
+      resultDiv.style.display = 'block';
+      const content = document.getElementById('excelResultContent');
+      content.innerHTML = `<p>⏳ ${title} yaratilmoqda...</p>`;
+      
+      try {
+        const endpoint = type === 'sales' ? 'generate-sales-table' :
+                        type === 'purchase' ? 'generate-purchase-table' :
+                        type === 'inventory' ? 'generate-inventory-table' :
+                        'generate-financial-report';
+        
+        const res = await fetch(`/api/excel/${endpoint}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ period: '2026-02' })
+        });
+        
+        const data = await res.json();
+        
+        if (data.success) {
+          content.innerHTML = `
+            <h4 style="color: #4CAF50;">✅ ${title} muvaffaqiyatli yaratildi</h4>
+            <p><strong>Fayl:</strong> ${data.file}</p>
+            <p><strong>Qatorlar:</strong> ${data.rows || 'N/A'}</p>
+            <a href="${data.download_url}" style="color: #2196F3; text-decoration: underline;">📥 Yuklab olish</a>
+          `;
+        } else {
+          content.innerHTML = `<p style="color: #f44336;">❌ Xato: ${data.error}</p>`;
+        }
+      } catch(e) {
+        content.innerHTML = `<p style="color: #f44336;">❌ Xato: ${e.message}</p>`;
+      }
+    }
+
+    async function generateCompleteReport() {
+      const resultDiv = document.getElementById('excelResult');
+      resultDiv.style.display = 'block';
+      const content = document.getElementById('excelResultContent');
+      content.innerHTML = `<p>⏳ TO'LIQ HISOBOT yaratilmoqda...</p>`;
+      
+      try {
+        const res = await fetch('/api/excel/generate-complete-report', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ period: '2026-02' })
+        });
+        
+        const data = await res.json();
+        
+        if (data.success) {
+          content.innerHTML = `
+            <h4 style="color: #4CAF50;">✅ TO'LIQ HISOBOT muvaffaqiyatli yaratildi</h4>
+            <p><strong>Fayl:</strong> ${data.file}</p>
+            <p><strong>Sheet'lar:</strong> ${data.sheets.join(', ')}</p>
+            <a href="${data.download_url}" style="color: #2196F3; text-decoration: underline;">📥 Yuklab olish</a>
+          `;
+        } else {
+          content.innerHTML = `<p style="color: #f44336;">❌ Xato: ${data.error}</p>`;
+        }
+      } catch(e) {
+        content.innerHTML = `<p style="color: #f44336;">❌ Xato: ${e.message}</p>`;
+      }
+    }
+
+    // Auto Form Functions
+    async function generateAutoForms() {
+      const resultDiv = document.getElementById('formsResult');
+      resultDiv.style.display = 'block';
+      const content = document.getElementById('formsResultContent');
+      content.innerHTML = `<p>⏳ Formalar yaratilmoqda...</p>`;
+      
+      try {
+        const period = document.getElementById('formPeriod').value;
+        
+        const res = await fetch('/api/excel/generate-auto-forms', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ period: period })
+        });
+        
+        const data = await res.json();
+        
+        if (data.success) {
+          let formsList = `<h4 style="color: #4CAF50;">✅ ${data.total_forms} ta forma yaratildi</h4>`;
+          formsList += `<p><strong>Davriy:</strong> ${data.period}</p>`;
+          formsList += `<p><strong>Formalar:</strong></p><ul>`;
+          
+          for (let form in data.forms) {
+            if (data.forms[form].success) {
+              formsList += `<li>✅ ${data.forms[form].form_type}</li>`;
+            }
+          }
+          
+          formsList += `</ul>`;
+          content.innerHTML = formsList;
+        } else {
+          content.innerHTML = `<p style="color: #f44336;">❌ Xato: ${data.error}</p>`;
+        }
+      } catch(e) {
+        content.innerHTML = `<p style="color: #f44336;">❌ Xato: ${e.message}</p>`;
+      }
+    }
+
+    async function fillTaxForm() {
+      const period = document.getElementById('formPeriod').value;
+      const resultDiv = document.getElementById('formsResult');
+      resultDiv.style.display = 'block';
+      
+      try {
+        const res = await fetch('/api/excel/fill-tax-form', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            period: period,
+            income: 5000000,
+            expenses: 2000000,
+            purchases: 1500000
+          })
+        });
+        
+        const data = await res.json();
+        
+        if (data.success) {
+          document.getElementById('formsResultContent').innerHTML = `
+            <h4 style="color: #4CAF50;">✅ Soliq Deklaratsiyasi to'ldirildi</h4>
+            <p><strong>Forma turi:</strong> ${data.form_type}</p>
+            <p><strong>Davriy:</strong> ${period}</p>
+            <pre>${JSON.stringify(data.form_data, null, 2)}</pre>
+          `;
+        } else {
+          document.getElementById('formsResultContent').innerHTML = `<p style="color: #f44336;">❌ Xato: ${data.error}</p>`;
+        }
+      } catch(e) {
+        document.getElementById('formsResultContent').innerHTML = `<p style="color: #f44336;">❌ Xato: ${e.message}</p>`;
+      }
+    }
+
+    async function fillVatForm() {
+      const period = document.getElementById('formPeriod').value;
+      
+      try {
+        const res = await fetch('/api/excel/fill-vat-form', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            period: period,
+            sales_total: 5000000,
+            purchases_total: 2000000
+          })
+        });
+        
+        const data = await res.json();
+        
+        if (data.success) {
+          document.getElementById('formsResultContent').innerHTML = `
+            <h4 style="color: #4CAF50;">✅ KDV Formasi to'ldirildi</h4>
+            <pre>${JSON.stringify(data.form_data, null, 2)}</pre>
+          `;
+        } else {
+          document.getElementById('formsResultContent').innerHTML = `<p style="color: #f44336;">❌ Xato: ${data.error}</p>`;
+        }
+      } catch(e) {
+        document.getElementById('formsResultContent').innerHTML = `<p style="color: #f44336;">❌ Xato: ${e.message}</p>`;
+      }
+    }
+
+    async function fillPayrollForm() {
+      const period = document.getElementById('formPeriod').value;
+      
+      try {
+        const res = await fetch('/api/excel/fill-payroll-form', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            period: period,
+            employee_count: 10,
+            total_salary: 500000000
+          })
+        });
+        
+        const data = await res.json();
+        
+        if (data.success) {
+          document.getElementById('formsResultContent').innerHTML = `
+            <h4 style="color: #4CAF50;">✅ Oylik Hisoboti to'ldirildi</h4>
+            <pre>${JSON.stringify(data.form_data, null, 2)}</pre>
+          `;
+        } else {
+          document.getElementById('formsResultContent').innerHTML = `<p style="color: #f44336;">❌ Xato: ${data.error}</p>`;
+        }
+      } catch(e) {
+        document.getElementById('formsResultContent').innerHTML = `<p style="color: #f44336;">❌ Xato: ${e.message}</p>`;
+      }
+    }
+  </script>

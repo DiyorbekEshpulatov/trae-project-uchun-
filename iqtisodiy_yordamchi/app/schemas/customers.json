@@ -1,0 +1,36 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Customers",
+  "type": "object",
+  "properties": {
+    "customers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "phone": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "address": {
+            "type": "string"
+          },
+          "inn": {
+            "type": "string",
+            "description": "Tax identification number"
+          }
+        },
+        "required": ["name"]
+      },
+      "minItems": 1
+    }
+  },
+  "required": ["customers"]
+}

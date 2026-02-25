@@ -1,0 +1,49 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Products",
+  "type": "object",
+  "properties": {
+    "products": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "Product code"
+          },
+          "name": {
+            "type": "string",
+            "description": "Product name"
+          },
+          "category": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string",
+            "description": "Unit of measure (dona, kg, litr)"
+          },
+          "purchase_price": {
+            "type": "number",
+            "minimum": 0
+          },
+          "sale_price": {
+            "type": "number",
+            "minimum": 0
+          },
+          "quantity": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "minimum_quantity": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": ["code", "name", "purchase_price", "sale_price"]
+      },
+      "minItems": 1
+    }
+  },
+  "required": ["products"]
+}

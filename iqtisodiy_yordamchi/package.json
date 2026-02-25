@@ -1,0 +1,44 @@
+{
+  "name": "smart-savdo",
+  "version": "3.0.0",
+  "description": "Multi-platform ERP for Uzbekistan",
+  "main": "app/main.py",
+  "scripts": {
+    "web": "python app/main.py",
+    "mobile": "cd mobile && npm start",
+    "mobile:android": "cd mobile && npm run android",
+    "mobile:ios": "cd mobile && npm run ios",
+    "desktop": "cd desktop && npm start",
+    "desktop:build": "cd desktop && npm run build",
+    "desktop:package": "cd desktop && npm run make",
+    "test": "python -m pytest tests/",
+    "lint": "pylint app/",
+    "format": "black app/",
+    "install:all": "pip install -r requirements.txt && cd mobile && npm install && cd ../desktop && npm install",
+    "dev:web": "python app/main.py --debug",
+    "dev:mobile": "cd mobile && npm start",
+    "dev:desktop": "cd desktop && npm start"
+  },
+  "keywords": [
+    "ERP",
+    "Uzbekistan",
+    "SMB",
+    "Sales",
+    "Inventory",
+    "Tax"
+  ],
+  "author": "Smart Savdo Team",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.6.0",
+    "electron-store": "^8.5.0",
+    "i18next": "^23.5.0",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "electron": "^27.0.0",
+    "electron-builder": "^24.6.0",
+    "@testing-library/react": "^14.0.0",
+    "jest": "^29.7.0"
+  }
+}

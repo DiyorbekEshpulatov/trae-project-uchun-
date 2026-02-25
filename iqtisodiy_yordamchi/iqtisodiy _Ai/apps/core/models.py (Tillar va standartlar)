@@ -1,0 +1,67 @@
+"""
+Core models - Tillar va standartlar | Языки и стандарты | Languages and standards
+"""
+
+from django.db import models
+from parler.models import TranslatableModel, TranslatedFields
+
+class Standard(TranslatableModel):
+    """
+    Milliy va xalqaro standartlar | Национальные и международные стандарты
+    """
+    
+    STANDARD_TYPES = [
+        ('national', 'Milliy | Национальный | National'),
+        ('international', 'Xalqaro | Международный | International'),
+        ('industry', 'Sanoat | Отраслевой | Industry'),
+    ]
+    
+    code = models.CharField(max_length=50, unique=True)
+    type = models.CharField(max_length=20, choices=STANDARD_TYPES)
+    
+    translations = TranslatedFields(
+        name=models.CharField(max_length=200),
+        description=models.TextField(),
+    )
+    
+    # Standart ma'lumotlari
+    issuing_body = models.CharField(max_length=200)  # Nashr etuvchi
+    effective_date = models.DateField()
+    version = models.CharField(max_length=20)
+    is_active = models.BooleanField(default=True)
+    
+    # XBRL taxonomy (agar mavjud bo'lsa)
+    xbrl_taxonomy = models.CharField(max_length=100, blank=True)
+    xbrl_element = models.CharField(max_length=100, blank=True)
+    
+    class Meta:
+        db_table = 'standards'
+        verbose_name = 'Standard'
+        verbose_name_plural = 'Standards'
+    
+    def __str__(self):
+        return f"{self.code} - {self.name}"
+
+class Currency(models.Model):
+    """
+    Valyutalar | Валюты | Currencies
+    O'zbekiston MB kurslari | Курсы ЦБ Узбекистана | CBU rates
+    """
+    
+    code = models.CharField(max_length=3, unique=True)  # UZS, USD, EUR
+    numeric_code = models.CharField(max_length=3, unique=True)  # 860, 840, 978
+    name = models.CharField(max_length=100)
+    
+    # O'zbekiston MB ma'lumotlari
+    cbu_rate = models.DecimalField(max_digits=15, decimal_places=4, null=True, blank=True)
+    cbu_date = models.DateField(null=True, blank=True)
+    
+    is_default = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
+    
+    class Meta:
+        db_table = 'currencies'
+        verbose_name_plural = 'currencies'
+    
+    def __str__(self):
+        return self.code
