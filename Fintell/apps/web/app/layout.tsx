@@ -2,8 +2,6 @@
 
 // @ts-nocheck
 // Mock React hooks
-const useState = (initial: any) => [initial, (newState: any) => {}];
-const useEffect = (callback: () => void, deps?: any[]) => {};
 
 // Mock NextJS Link component
 const Link = ({ href, children, ...props }: any) => <a href={href} {...props}>{children}</a>;

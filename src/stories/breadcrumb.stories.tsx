@@ -1,14 +1,10 @@
 // [build] library: 'shadcn'
-import { ChevronRight, Slash } from "lucide-react";
 
 import {
   Breadcrumb,
   BreadcrumbList,
   BreadcrumbItem,
   BreadcrumbLink,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-  BreadcrumbEllipsis,
 } from "../components/ui/breadcrumb";
 
 const meta = {

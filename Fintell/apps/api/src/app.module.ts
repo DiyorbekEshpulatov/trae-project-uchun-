@@ -1,6 +1,6 @@
 // @ts-nocheck
 // Mock NestJS decorators
-const Module = (options: any) => (target: any) => {
+const Module = (_options: any) => (_target: any) => {
   // Module decorator implementation
 };
 

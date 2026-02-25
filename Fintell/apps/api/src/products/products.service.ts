@@ -1,6 +1,6 @@
 // @ts-nocheck
 // Mock NestJS decorators
-const Injectable = () => (target: any) => {};
+const Injectable = () => (_target: any) => {};
 class NotFoundException extends Error {
   constructor(message?: string) {
     super(message);
@@ -11,8 +11,8 @@ class NotFoundException extends Error {
 // Mock Prisma service
 class PrismaService {
   product = {
-    findMany: async (query: any) => [],
-    findFirst: async (query: any) => null,
+    findMany: async (_query: any) => [],
+    findFirst: async (_query: any) => null,
     create: async (data: any) => ({ id: '1', ...data.data }),
     update: async (query: any) => ({ id: query.where.id, ...query.data }),
     delete: async (query: any) => ({ id: query.where.id })
@@ -48,14 +48,14 @@ export class ProductsService {
     });
   }
 
-  async update(id: string, data: any, companyId: string) {
+  async update(id: string, data: any, _companyId: string) {
     return this.prisma.product.update({
       where: { id },
       data,
     });
   }
 
-  async remove(id: string, companyId: string) {
+  async remove(id: string, _companyId: string) {
     return this.prisma.product.delete({
       where: { id },
     });

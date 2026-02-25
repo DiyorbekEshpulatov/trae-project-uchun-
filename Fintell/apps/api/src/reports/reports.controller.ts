@@ -1,10 +1,9 @@
 // @ts-nocheck
 // Mock NestJS decorators
-const Controller = (path?: string) => (target: any) => {};
-const Get = (path?: string) => (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {};
-const UseGuards = (...guards: any[]) => (target: any, propertyKey?: string, descriptor?: PropertyDescriptor) => {};
-const Request = () => (target: any, propertyKey: string, parameterIndex: number) => {};
-const Query = () => (target: any, propertyKey: string, parameterIndex: number) => {};
+const Controller = (_path?: string) => (_target: any, _propertyKey?: string, _descriptor?: PropertyDescriptor) => {};
+const Get = (_path?: string) => () => {};
+const UseGuards = (..._guards: any[]) => (..._args: any[]) => {};
+const Request = () => (_target: any, _propertyKey: string, _parameterIndex: number) => {};
 
 import { ReportsService } from './reports.service';
 

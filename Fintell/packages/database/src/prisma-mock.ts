@@ -21,8 +21,8 @@ export class PrismaService {
 
   get user() {
     return {
-      findUnique: async (query: any) => null,
-      findMany: async (query: any) => [],
+      findUnique: async (_query: any) => null,
+      findMany: async (_query: any) => [],
       create: async (data: any) => ({ id: '1', ...data.data }),
       update: async (query: any) => ({ id: query.where.id, ...query.data }),
       delete: async (query: any) => ({ id: query.where.id }),
@@ -31,8 +31,8 @@ export class PrismaService {
 
   get company() {
     return {
-      findUnique: async (query: any) => null,
-      findMany: async (query: any) => [],
+      findUnique: async (_query: any) => null,
+      findMany: async (_query: any) => [],
       create: async (data: any) => ({ id: '1', ...data.data }),
       update: async (query: any) => ({ id: query.where.id, ...query.data }),
       delete: async (query: any) => ({ id: query.where.id }),
@@ -41,9 +41,9 @@ export class PrismaService {
 
   get product() {
     return {
-      findUnique: async (query: any) => null,
-      findMany: async (query: any) => [],
-      findFirst: async (query: any) => null,
+      findUnique: async (_query: any) => null,
+      findMany: async (_query: any) => [],
+      findFirst: async (_query: any) => null,
       create: async (data: any) => ({ id: '1', ...data.data }),
       update: async (query: any) => ({ id: query.where.id, ...query.data }),
       delete: async (query: any) => ({ id: query.where.id }),
@@ -52,14 +52,14 @@ export class PrismaService {
 
   get transaction() {
     return {
-      findUnique: async (query: any) => null,
-      findMany: async (query: any) => [],
+      findUnique: async (_query: any) => null,
+      findMany: async (_query: any) => [],
       create: async (data: any) => ({ id: '1', ...data.data }),
       update: async (query: any) => ({ id: query.where.id, ...query.data }),
       delete: async (query: any) => ({ id: query.where.id }),
-      count: async (query: any) => 0,
-      aggregate: async (options: any) => ({ _sum: { amount: 0 } }),
-      groupBy: async (options: any) => [],
+      count: async (_query: any) => 0,
+      aggregate: async (_options: any) => ({ _sum: { amount: 0 } }),
+      groupBy: async (_options: any) => [],
     };
   }
 

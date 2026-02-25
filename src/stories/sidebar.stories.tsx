@@ -5,7 +5,6 @@ import {
   Calendar,
   Search,
   Settings,
-  ChevronDown,
 } from "lucide-react";
 
 import {

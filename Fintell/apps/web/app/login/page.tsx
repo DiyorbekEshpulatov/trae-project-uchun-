@@ -2,12 +2,12 @@
 
 // @ts-nocheck
 // Mock React hooks
-const useState = (initial: any) => [initial, (newState: any) => {}];
+const useState = (initial: any) => [initial, (_newState: any) => {}];
 
 // Mock NextJS navigation
 const useRouter = () => ({
-  push: (url: string) => {},
-  replace: (url: string) => {},
+  push: (_url: string) => {},
+  replace: (_url: string) => {},
   back: () => {},
   reload: () => {},
 });
@@ -20,9 +20,9 @@ export default function Login() {
 
   // Mock localStorage
   const localStorage = {
-    setItem: (key: string, value: string) => {},
-    getItem: (key: string) => null,
-    removeItem: (key: string) => {}
+    setItem: (_key: string, _value: string) => {},
+    getItem: (_key: string) => null,
+    removeItem: (_key: string) => {}
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
