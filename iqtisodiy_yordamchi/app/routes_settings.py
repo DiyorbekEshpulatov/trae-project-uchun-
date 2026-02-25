@@ -22,26 +22,29 @@ def get_roles():
     } for r in roles]), 200
 
 
-@settings_bp.route('/api/settings/roles/<int:role_id>', methods=['GET', 'PUT'])
+@settings_bp.route('/api/settings/roles/<int:role_id>', methods=['GET'])
 @login_required
-def role_detail(role_id):
+def get_role_detail(role_id):
+    """Bir rollning ma'lumotlari va ruxsatnomalarini ko'rsatish"""
+    role = Role.query.get_or_404(role_id)
+    return jsonify({
+        'id': role.id,
+        'name': role.name,
+        'permissions': role.permissions,
+        'description': role.description
+    }), 200
+
+
+@settings_bp.route('/api/settings/roles/<int:role_id>', methods=['PUT'])
+@login_required
+def update_role_detail(role_id):
     """Bir rollning ma'lumotlari va ruxsatnomalarini o'zgartirish"""
     role = Role.query.get_or_404(role_id)
-    
-    if request.method == 'GET':
-        return jsonify({
-            'id': role.id,
-            'name': role.name,
-            'permissions': role.permissions,
-            'description': role.description
-        }), 200
-    
-    if request.method == 'PUT':
-        data = request.json
-        role.permissions = data.get('permissions', role.permissions)
-        role.description = data.get('description', role.description)
-        db.session.commit()
-        return jsonify({'message': 'Roll yangilandi'}), 200
+    data = request.json
+    role.permissions = data.get('permissions', role.permissions)
+    role.description = data.get('description', role.description)
+    db.session.commit()
+    return jsonify({'message': 'Roll yangilandi'}), 200
 
 
 @settings_bp.route('/api/settings/users/<int:user_id>/role', methods=['PUT'])

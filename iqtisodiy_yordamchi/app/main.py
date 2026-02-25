@@ -456,17 +456,12 @@ def recommendations():
     return jsonify({'restock': restock, 'discounts': discount, 'automation': automation}), 200
 
 
-@app.route('/api/ai/ask', methods=['GET', 'POST'])
+@app.route('/api/ai/ask', methods=['GET'])
 @login_required
 def ask_ai():
     """AI assistant Q&A endpoint - use GPT-4 if API key available, fallback to KB"""
-    if request.method == 'GET':
-        question = request.args.get('question', '')
-    else:
-        data = request.get_json(silent=True) or {}
-        question = data.get('question', '')
-    
-    category = request.args.get('category', 'business') if request.method == 'GET' else (request.get_json(silent=True) or {}).get('category', 'business')
+    question = request.args.get('question', '')
+    category = request.args.get('category', 'business')
     
     answer = None
     confidence = 0.0
@@ -548,6 +543,7 @@ def send_otp_sms(phone, otp_code):
     return True
 
 
+
 def get_user_permissions(user_id):
     """Foydalanuvchi ruxsatnomalarini olish"""
     user = User.query.get(user_id)
@@ -570,54 +566,54 @@ def index():
         return redirect(url_for('login'))
     return redirect(url_for('dashboard'))
 
-
-@app.route('/register', methods=['GET', 'POST'])
-def register():
+@app.route('/register', methods=['GET'])
+def register_form():
     """Ro'yxatdan o'tish"""
-    if request.method == 'POST':
-        data = request.json
-        username = data.get('username')
-        email = data.get('email')
-        password = data.get('password')
-
-        if User.query.filter_by(username=username).first():
-            return jsonify({'error': 'Foydalanuvchi allaqachon mavjud'}), 400
-
-        user = User(username=username, email=email)
-        user.set_password(password)
-        db.session.add(user)
-        db.session.commit()
-
-        return jsonify({'message': 'Ro\'yxat muvaffaqiyatli'}), 201
-
     return render_template('register.html')
 
+@app.route('/register', methods=['POST'])
+def register():
+    """Ro'yxatdan o'tish"""
+    data = request.json
+    username = data.get('username')
+    email = data.get('email')
+    password = data.get('password')
 
-@app.route('/login', methods=['GET', 'POST'])
-def login():
+    if User.query.filter_by(username=username).first():
+        return jsonify({'error': 'Foydalanuvchi allaqachon mavjud'}), 400
+
+    user = User(username=username, email=email)
+    user.set_password(password)
+    db.session.add(user)
+    db.session.commit()
+
+    return jsonify({'message': 'Ro\'yxat muvaffaqiyatli'}), 201
+
+@app.route('/login', methods=['GET'])
+def login_form():
     """Kirish"""
-    if request.method == 'POST':
-        data = request.json
-        username = data.get('username')
-        password = data.get('password')
-
-        user = User.query.filter_by(username=username).first()
-        if user and user.check_password(password):
-            session['user_id'] = user.id
-            session['username'] = user.username
-            return jsonify({'message': 'Kirildi'}), 200
-        
-        return jsonify({'error': 'Noto\'g\'ri foydalanuvchi yoki parol'}), 401
-
     return render_template('login.html')
 
+@app.route('/login', methods=['POST'])
+def login():
+    """Kirish"""
+    data = request.json
+    username = data.get('username')
+    password = data.get('password')
+
+    user = User.query.filter_by(username=username).first()
+    if user and user.check_password(password):
+        session['user_id'] = user.id
+        session['username'] = user.username
+        return jsonify({'message': 'Kirildi'}), 200
+    
+    return jsonify({'error': 'Noto\'g\'ri foydalanuvchi yoki parol'}), 401
 
 @app.route('/logout')
 def logout():
     """Chiqish"""
     session.clear()
     return redirect(url_for('login'))
-
 
 @app.route('/dashboard')
 @login_required
@@ -808,611 +804,635 @@ def realtime_publish():
 
 # ==================== CUSTOMER ROUTES ====================
 
-@app.route('/api/customers', methods=['GET', 'POST'])
+@app.route('/api/customers', methods=['GET'])
 @login_required
 def manage_customers():
-    """Mijozlarni boshqarish"""
-    if request.method == 'GET':
-        customers = Customer.query.all()
-        return jsonify([{
-            'id': c.id,
-            'name': c.name,
-            'phone': c.phone,
-            'email': c.email,
-            'address': c.address,
-            'inn': c.inn,
-            'credit_limit': c.credit_limit
-        } for c in customers])
+    """Mijozlarni boshqarish (read-only)"""
+    customers = Customer.query.all()
+    return jsonify([{
+        'id': c.id,
+        'name': c.name,
+        'phone': c.phone,
+        'email': c.email,
+        'address': c.address,
+        'inn': c.inn,
+        'credit_limit': c.credit_limit
+    } for c in customers])
 
-    if request.method == 'POST':
-        data = request.json
-        customer = Customer(
-            name=data.get('name'),
-            phone=data.get('phone'),
-            email=data.get('email'),
-            address=data.get('address'),
-            inn=data.get('inn'),
-            credit_limit=data.get('credit_limit', 0)
-        )
-        db.session.add(customer)
-        db.session.commit()
-        return jsonify({'id': customer.id, 'message': 'Mijoz qo\'shildi'}), 201
+@app.route('/api/customers', methods=['POST'])
+@login_required
+def create_customer():
+    data = request.json
+    customer = Customer(
+        name=data.get('name'),
+        phone=data.get('phone'),
+        email=data.get('email'),
+        address=data.get('address'),
+        inn=data.get('inn'),
+        credit_limit=data.get('credit_limit', 0)
+    )
+    db.session.add(customer)
+    db.session.commit()
+    return jsonify({'id': customer.id, 'message': 'Mijoz qo\'shildi'}), 201
 
-
-@app.route('/api/customers/<int:customer_id>', methods=['GET', 'PUT', 'DELETE'])
+@app.route('/api/customers/<int:customer_id>', methods=['GET'])
 @login_required
 def customer_detail(customer_id):
-    """Bir mijozning ma'lumotlari"""
+    """Bir mijozning ma'lumotlari (read-only)"""
     customer = Customer.query.get_or_404(customer_id)
+    return jsonify({
+        'id': customer.id,
+        'name': customer.name,
+        'phone': customer.phone,
+        'email': customer.email,
+        'address': customer.address,
+        'inn': customer.inn,
+        'credit_limit': customer.credit_limit
+    })
 
-    if request.method == 'GET':
-        return jsonify({
-            'id': customer.id,
-            'name': customer.name,
-            'phone': customer.phone,
-            'email': customer.email,
-            'address': customer.address,
-            'inn': customer.inn,
-            'credit_limit': customer.credit_limit
-        })
+@app.route('/api/customers/<int:customer_id>', methods=['PUT'])
+@login_required
+def update_customer(customer_id):
+    customer = Customer.query.get_or_404(customer_id)
+    data = request.json
+    customer.name = data.get('name', customer.name)
+    customer.phone = data.get('phone', customer.phone)
+    customer.email = data.get('email', customer.email)
+    customer.address = data.get('address', customer.address)
+    customer.inn = data.get('inn', customer.inn)
+    customer.credit_limit = data.get('credit_limit', customer.credit_limit)
+    db.session.commit()
+    return jsonify({'message': 'Yangilandi'})
 
-    if request.method == 'PUT':
-        data = request.json
-        customer.name = data.get('name', customer.name)
-        customer.phone = data.get('phone', customer.phone)
-        customer.email = data.get('email', customer.email)
-        customer.address = data.get('address', customer.address)
-        customer.inn = data.get('inn', customer.inn)
-        customer.credit_limit = data.get('credit_limit', customer.credit_limit)
-        db.session.commit()
-        return jsonify({'message': 'Yangilandi'})
-
-    if request.method == 'DELETE':
-        db.session.delete(customer)
-        db.session.commit()
-        return jsonify({'message': 'O\'chirildi'})
+@app.route('/api/customers/<int:customer_id>', methods=['DELETE'])
+@login_required
+def delete_customer(customer_id):
+    customer = Customer.query.get_or_404(customer_id)
+    db.session.delete(customer)
+    db.session.commit()
+    return jsonify({'message': 'O\'chirildi'})
 
 
 # ==================== SUPPLIER ROUTES ====================
 
-@app.route('/api/suppliers', methods=['GET', 'POST'])
+@app.route('/api/suppliers', methods=['GET'])
 @login_required
 def manage_suppliers():
-    """Etkazuvchilarni boshqarish"""
-    if request.method == 'GET':
-        suppliers = Supplier.query.all()
-        return jsonify([{
-            'id': s.id,
-            'name': s.name,
-            'phone': s.phone,
-            'email': s.email,
-            'address': s.address,
-            'inn': s.inn,
-            'bank_account': s.bank_account
-        } for s in suppliers])
+    """Etkazuvchilarni boshqarish (read-only)"""
+    suppliers = Supplier.query.all()
+    return jsonify([{
+        'id': s.id,
+        'name': s.name,
+        'phone': s.phone,
+        'email': s.email,
+        'address': s.address,
+        'inn': s.inn,
+        'bank_account': s.bank_account
+    } for s in suppliers])
 
-    if request.method == 'POST':
-        data = request.json
-        supplier = Supplier(
-            name=data.get('name'),
-            phone=data.get('phone'),
-            email=data.get('email'),
-            address=data.get('address'),
-            inn=data.get('inn'),
-            bank_account=data.get('bank_account')
-        )
-        db.session.add(supplier)
-        db.session.commit()
-        return jsonify({'id': supplier.id, 'message': 'Etkazuvchi qo\'shildi'}), 201
+@app.route('/api/suppliers', methods=['POST'])
+@login_required
+def create_supplier():
+    data = request.json
+    supplier = Supplier(
+        name=data.get('name'),
+        phone=data.get('phone'),
+        email=data.get('email'),
+        address=data.get('address'),
+        inn=data.get('inn'),
+        bank_account=data.get('bank_account')
+    )
+    db.session.add(supplier)
+    db.session.commit()
+    return jsonify({'id': supplier.id, 'message': 'Etkazuvchi qo\'shildi'}), 201
 
-
-@app.route('/api/suppliers/<int:supplier_id>', methods=['GET', 'PUT', 'DELETE'])
+@app.route('/api/suppliers/<int:supplier_id>', methods=['GET'])
 @login_required
 def supplier_detail(supplier_id):
-    """Bir etkazuvchining ma'lumotlari"""
+    """Bir etkazuvchining ma'lumotlari (read-only)"""
     supplier = Supplier.query.get_or_404(supplier_id)
+    return jsonify({
+        'id': supplier.id,
+        'name': supplier.name,
+        'phone': supplier.phone,
+        'email': supplier.email,
+        'address': supplier.address,
+        'inn': supplier.inn,
+        'bank_account': supplier.bank_account
+    })
 
-    if request.method == 'GET':
-        return jsonify({
-            'id': supplier.id,
-            'name': supplier.name,
-            'phone': supplier.phone,
-            'email': supplier.email,
-            'address': supplier.address,
-            'inn': supplier.inn,
-            'bank_account': supplier.bank_account
-        })
+@app.route('/api/suppliers/<int:supplier_id>', methods=['PUT'])
+@login_required
+def update_supplier(supplier_id):
+    supplier = Supplier.query.get_or_404(supplier_id)
+    data = request.json
+    supplier.name = data.get('name', supplier.name)
+    supplier.phone = data.get('phone', supplier.phone)
+    supplier.email = data.get('email', supplier.email)
+    supplier.address = data.get('address', supplier.address)
+    supplier.inn = data.get('inn', supplier.inn)
+    supplier.bank_account = data.get('bank_account', supplier.bank_account)
+    db.session.commit()
+    return jsonify({'message': 'Yangilandi'})
 
-    if request.method == 'PUT':
-        data = request.json
-        supplier.name = data.get('name', supplier.name)
-        supplier.phone = data.get('phone', supplier.phone)
-        supplier.email = data.get('email', supplier.email)
-        supplier.address = data.get('address', supplier.address)
-        supplier.inn = data.get('inn', supplier.inn)
-        supplier.bank_account = data.get('bank_account', supplier.bank_account)
-        db.session.commit()
-        return jsonify({'message': 'Yangilandi'})
-
-    if request.method == 'DELETE':
-        db.session.delete(supplier)
-        db.session.commit()
-        return jsonify({'message': 'O\'chirildi'})
+@app.route('/api/suppliers/<int:supplier_id>', methods=['DELETE'])
+@login_required
+def delete_supplier(supplier_id):
+    supplier = Supplier.query.get_or_404(supplier_id)
+    db.session.delete(supplier)
+    db.session.commit()
+    return jsonify({'message': 'O\'chirildi'})
 
 
 # ==================== PRODUCT ROUTES ====================
 
-@app.route('/api/products', methods=['GET', 'POST'])
+@app.route('/api/products', methods=['GET'])
 @login_required
 def manage_products():
-    """Mahsulotlarni boshqarish"""
-    if request.method == 'GET':
-        products = Product.query.all()
-        return jsonify([{
-            'id': p.id,
-            'code': p.code,
-            'name': p.name,
-            'category': p.category,
-            'unit': p.unit,
-            'purchase_price': p.purchase_price,
-            'sale_price': p.sale_price,
-            'quantity': p.quantity,
-            'minimum_quantity': p.minimum_quantity
-        } for p in products])
+    """Mahsulotlarni boshqarish (read-only)"""
+    products = Product.query.all()
+    return jsonify([{
+        'id': p.id,
+        'code': p.code,
+        'name': p.name,
+        'category': p.category,
+        'unit': p.unit,
+        'purchase_price': p.purchase_price,
+        'sale_price': p.sale_price,
+        'quantity': p.quantity,
+        'minimum_quantity': p.minimum_quantity
+    } for p in products])
 
-    if request.method == 'POST':
-        data = request.json
-        product = Product(
-            code=data.get('code'),
-            name=data.get('name'),
-            category=data.get('category'),
-            unit=data.get('unit'),
-            purchase_price=data.get('purchase_price'),
-            sale_price=data.get('sale_price'),
-            quantity=data.get('quantity', 0),
-            minimum_quantity=data.get('minimum_quantity', 10),
-            description=data.get('description')
-        )
-        db.session.add(product)
-        db.session.commit()
-        return jsonify({'id': product.id, 'message': 'Mahsulot qo\'shildi'}), 201
+@app.route('/api/products', methods=['POST'])
+@login_required
+def create_product():
+    data = request.json
+    product = Product(
+        code=data.get('code'),
+        name=data.get('name'),
+        category=data.get('category'),
+        unit=data.get('unit'),
+        purchase_price=data.get('purchase_price'),
+        sale_price=data.get('sale_price'),
+        quantity=data.get('quantity', 0),
+        minimum_quantity=data.get('minimum_quantity', 10),
+        description=data.get('description')
+    )
+    db.session.add(product)
+    db.session.commit()
+    return jsonify({'id': product.id, 'message': 'Mahsulot qo\'shildi'}), 201
 
-
-@app.route('/api/products/<int:product_id>', methods=['GET', 'PUT', 'DELETE'])
+@app.route('/api/products/<int:product_id>', methods=['GET'])
 @login_required
 def product_detail(product_id):
-    """Bir mahsulotning ma'lumotlari"""
+    """Bir mahsulotning ma'lumotlari (read-only)"""
     product = Product.query.get_or_404(product_id)
+    return jsonify({
+        'id': product.id,
+        'code': product.code,
+        'name': product.name,
+        'category': product.category,
+        'unit': product.unit,
+        'purchase_price': product.purchase_price,
+        'sale_price': product.sale_price,
+        'quantity': product.quantity,
+        'minimum_quantity': product.minimum_quantity,
+        'description': product.description
+    })
 
-    if request.method == 'GET':
-        return jsonify({
-            'id': product.id,
-            'code': product.code,
-            'name': product.name,
-            'category': product.category,
-            'unit': product.unit,
-            'purchase_price': product.purchase_price,
-            'sale_price': product.sale_price,
-            'quantity': product.quantity,
-            'minimum_quantity': product.minimum_quantity,
-            'description': product.description
-        })
+@app.route('/api/products/<int:product_id>', methods=['PUT'])
+@login_required
+def update_product(product_id):
+    product = Product.query.get_or_404(product_id)
+    data = request.json
+    product.code = data.get('code', product.code)
+    product.name = data.get('name', product.name)
+    product.category = data.get('category', product.category)
+    product.unit = data.get('unit', product.unit)
+    product.purchase_price = data.get('purchase_price', product.purchase_price)
+    product.sale_price = data.get('sale_price', product.sale_price)
+    product.quantity = data.get('quantity', product.quantity)
+    product.minimum_quantity = data.get('minimum_quantity', product.minimum_quantity)
+    product.description = data.get('description', product.description)
+    db.session.commit()
+    return jsonify({'message': 'Yangilandi'})
 
-    if request.method == 'PUT':
-        data = request.json
-        product.code = data.get('code', product.code)
-        product.name = data.get('name', product.name)
-        product.category = data.get('category', product.category)
-        product.unit = data.get('unit', product.unit)
-        product.purchase_price = data.get('purchase_price', product.purchase_price)
-        product.sale_price = data.get('sale_price', product.sale_price)
-        product.quantity = data.get('quantity', product.quantity)
-        product.minimum_quantity = data.get('minimum_quantity', product.minimum_quantity)
-        product.description = data.get('description', product.description)
-        db.session.commit()
-        return jsonify({'message': 'Yangilandi'})
-
-    if request.method == 'DELETE':
-        db.session.delete(product)
-        db.session.commit()
-        return jsonify({'message': 'O\'chirildi'})
+@app.route('/api/products/<int:product_id>', methods=['DELETE'])
+@login_required
+def delete_product(product_id):
+    product = Product.query.get_or_404(product_id)
+    db.session.delete(product)
+    db.session.commit()
+    return jsonify({'message': 'O\'chirildi'})
 
 
 # ==================== SALES ORDER ROUTES ====================
 
-@app.route('/api/sales-orders', methods=['GET', 'POST'])
+@app.route('/api/sales-orders', methods=['GET'])
 @login_required
 def manage_sales_orders():
-    """Sotuvlar buyurtmalarini boshqarish"""
-    if request.method == 'GET':
-        orders = SalesOrder.query.all()
-        return jsonify([{
-            'id': o.id,
-            'number': o.number,
-            'customer_id': o.customer_id,
-            'customer_name': o.customer.name,
-            'order_date': o.order_date.isoformat(),
-            'total_amount': o.total_amount,
-            'discount': o.discount,
-            'tax_amount': o.tax_amount,
-            'status': o.status
-        } for o in orders])
+    """Sotuvlar buyurtmalarini boshqarish (read-only)"""
+    orders = SalesOrder.query.all()
+    return jsonify([{
+        'id': o.id,
+        'number': o.number,
+        'customer_id': o.customer_id,
+        'customer_name': o.customer.name,
+        'order_date': o.order_date.isoformat(),
+        'total_amount': o.total_amount,
+        'discount': o.discount,
+        'tax_amount': o.tax_amount,
+        'status': o.status
+    } for o in orders])
 
-    if request.method == 'POST':
-        data = request.json
-        order = SalesOrder(
-            number=f"SO-{datetime.utcnow().timestamp()}",
-            customer_id=data.get('customer_id'),
-            total_amount=data.get('total_amount', 0),
-            discount=data.get('discount', 0),
-            tax_amount=data.get('tax_amount', 0),
-            status=data.get('status', 'Yangi')
-        )
-        db.session.add(order)
-        db.session.commit()
-        return jsonify({'id': order.id, 'number': order.number, 'message': 'Buyurtma qo\'shildi'}), 201
+@app.route('/api/sales-orders', methods=['POST'])
+@login_required
+def create_sales_order():
+    data = request.json
+    order = SalesOrder(
+        number=f"SO-{datetime.utcnow().timestamp()}",
+        customer_id=data.get('customer_id'),
+        total_amount=data.get('total_amount', 0),
+        discount=data.get('discount', 0),
+        tax_amount=data.get('tax_amount', 0),
+        status=data.get('status', 'Yangi')
+    )
+    db.session.add(order)
+    db.session.commit()
+    return jsonify({'id': order.id, 'number': order.number, 'message': 'Buyurtma qo\'shildi'}), 201
 
-
-@app.route('/api/sales-orders/<int:order_id>', methods=['GET', 'PUT', 'DELETE'])
+@app.route('/api/sales-orders/<int:order_id>', methods=['GET'])
 @login_required
 def sales_order_detail(order_id):
-    """Bir sotuvlar buyurtmasining ma'lumotlari"""
+    """Bir sotuvlar buyurtmasining ma'lumotlari (read-only)"""
     order = SalesOrder.query.get_or_404(order_id)
+    return jsonify({
+        'id': order.id,
+        'number': order.number,
+        'customer_id': order.customer_id,
+        'customer_name': order.customer.name,
+        'order_date': order.order_date.isoformat(),
+        'delivery_date': order.delivery_date.isoformat() if order.delivery_date else None,
+        'total_amount': order.total_amount,
+        'discount': order.discount,
+        'tax_amount': order.tax_amount,
+        'status': order.status,
+        'items': [{
+            'id': item.id,
+            'product_name': item.product.name,
+            'quantity': item.quantity,
+            'unit_price': item.unit_price,
+            'discount': item.discount
+        } for item in order.items]
+    })
 
-    if request.method == 'GET':
-        return jsonify({
-            'id': order.id,
-            'number': order.number,
-            'customer_id': order.customer_id,
-            'customer_name': order.customer.name,
-            'order_date': order.order_date.isoformat(),
-            'delivery_date': order.delivery_date.isoformat() if order.delivery_date else None,
-            'total_amount': order.total_amount,
-            'discount': order.discount,
-            'tax_amount': order.tax_amount,
-            'status': order.status,
-            'items': [{
-                'id': item.id,
-                'product_name': item.product.name,
-                'quantity': item.quantity,
-                'unit_price': item.unit_price,
-                'discount': item.discount
-            } for item in order.items]
-        })
+@app.route('/api/sales-orders/<int:order_id>', methods=['PUT'])
+@login_required
+def update_sales_order(order_id):
+    order = SalesOrder.query.get_or_404(order_id)
+    data = request.json
+    order.total_amount = data.get('total_amount', order.total_amount)
+    order.discount = data.get('discount', order.discount)
+    order.tax_amount = data.get('tax_amount', order.tax_amount)
+    order.status = data.get('status', order.status)
+    db.session.commit()
+    return jsonify({'message': 'Yangilandi'})
 
-    if request.method == 'PUT':
-        data = request.json
-        order.total_amount = data.get('total_amount', order.total_amount)
-        order.discount = data.get('discount', order.discount)
-        order.tax_amount = data.get('tax_amount', order.tax_amount)
-        order.status = data.get('status', order.status)
-        db.session.commit()
-        return jsonify({'message': 'Yangilandi'})
-
-    if request.method == 'DELETE':
-        db.session.delete(order)
-        db.session.commit()
-        return jsonify({'message': 'O\'chirildi'})
+@app.route('/api/sales-orders/<int:order_id>', methods=['DELETE'])
+@login_required
+def delete_sales_order(order_id):
+    order = SalesOrder.query.get_or_404(order_id)
+    db.session.delete(order)
+    db.session.commit()
+    return jsonify({'message': 'O\'chirildi'})
 
 
 # ==================== PURCHASE ORDER ROUTES ====================
 
-@app.route('/api/purchase-orders', methods=['GET', 'POST'])
+@app.route('/api/purchase-orders', methods=['GET'])
 @login_required
 def manage_purchase_orders():
-    """Sotib olish buyurtmalarini boshqarish"""
-    if request.method == 'GET':
-        orders = PurchaseOrder.query.all()
-        return jsonify([{
-            'id': o.id,
-            'number': o.number,
-            'supplier_id': o.supplier_id,
-            'supplier_name': o.supplier.name,
-            'order_date': o.order_date.isoformat(),
-            'total_amount': o.total_amount,
-            'status': o.status
-        } for o in orders])
+    """Sotib olish buyurtmalarini boshqarish (read-only)"""
+    orders = PurchaseOrder.query.all()
+    return jsonify([{
+        'id': o.id,
+        'number': o.number,
+        'supplier_id': o.supplier_id,
+        'supplier_name': o.supplier.name,
+        'order_date': o.order_date.isoformat(),
+        'total_amount': o.total_amount,
+        'status': o.status
+    } for o in orders])
 
-    if request.method == 'POST':
-        data = request.json
-        order = PurchaseOrder(
-            number=f"PO-{datetime.utcnow().timestamp()}",
-            supplier_id=data.get('supplier_id'),
-            total_amount=data.get('total_amount', 0),
-            status=data.get('status', 'Yangi')
-        )
-        db.session.add(order)
-        db.session.commit()
-        return jsonify({'id': order.id, 'number': order.number, 'message': 'Buyurtma qo\'shildi'}), 201
+@app.route('/api/purchase-orders', methods=['POST'])
+@login_required
+def create_purchase_order():
+    data = request.json
+    order = PurchaseOrder(
+        number=f"PO-{datetime.utcnow().timestamp()}",
+        supplier_id=data.get('supplier_id'),
+        total_amount=data.get('total_amount', 0),
+        status=data.get('status', 'Yangi')
+    )
+    db.session.add(order)
+    db.session.commit()
+    return jsonify({'id': order.id, 'number': order.number, 'message': 'Buyurtma qo\'shildi'}), 201
 
-
-@app.route('/api/purchase-orders/<int:order_id>', methods=['GET', 'PUT', 'DELETE'])
+@app.route('/api/purchase-orders/<int:order_id>', methods=['GET'])
 @login_required
 def purchase_order_detail(order_id):
-    """Bir sotib olish buyurtmasining ma'lumotlari"""
+    """Bir sotib olish buyurtmasining ma'lumotlari (read-only)"""
     order = PurchaseOrder.query.get_or_404(order_id)
+    return jsonify({
+        'id': order.id,
+        'number': order.number,
+        'supplier_id': order.supplier_id,
+        'supplier_name': order.supplier.name,
+        'order_date': order.order_date.isoformat(),
+        'expected_delivery': order.expected_delivery.isoformat() if order.expected_delivery else None,
+        'total_amount': order.total_amount,
+        'status': order.status,
+        'items': [{
+            'id': item.id,
+            'product_name': item.product.name,
+            'quantity': item.quantity,
+            'unit_price': item.unit_price
+        } for item in order.items]
+    })
 
-    if request.method == 'GET':
-        return jsonify({
-            'id': order.id,
-            'number': order.number,
-            'supplier_id': order.supplier_id,
-            'supplier_name': order.supplier.name,
-            'order_date': order.order_date.isoformat(),
-            'expected_delivery': order.expected_delivery.isoformat() if order.expected_delivery else None,
-            'total_amount': order.total_amount,
-            'status': order.status,
-            'items': [{
-                'id': item.id,
-                'product_name': item.product.name,
-                'quantity': item.quantity,
-                'unit_price': item.unit_price
-            } for item in order.items]
-        })
+@app.route('/api/purchase-orders/<int:order_id>', methods=['PUT'])
+@login_required
+def update_purchase_order(order_id):
+    order = PurchaseOrder.query.get_or_404(order_id)
+    data = request.json
+    order.total_amount = data.get('total_amount', order.total_amount)
+    order.status = data.get('status', order.status)
+    db.session.commit()
+    return jsonify({'message': 'Yangilandi'})
 
-    if request.method == 'PUT':
-        data = request.json
-        order.total_amount = data.get('total_amount', order.total_amount)
-        order.status = data.get('status', order.status)
-        db.session.commit()
-        return jsonify({'message': 'Yangilandi'})
-
-    if request.method == 'DELETE':
-        db.session.delete(order)
-        db.session.commit()
-        return jsonify({'message': 'O\'chirildi'})
+@app.route('/api/purchase-orders/<int:order_id>', methods=['DELETE'])
+@login_required
+def delete_purchase_order(order_id):
+    order = PurchaseOrder.query.get_or_404(order_id)
+    db.session.delete(order)
+    db.session.commit()
+    return jsonify({'message': 'O\'chirildi'})
 
 
 # ==================== INVENTORY ROUTES ====================
 
-@app.route('/api/inventory', methods=['GET', 'POST'])
+@app.route('/api/inventory', methods=['GET'])
 @login_required
 def manage_inventory():
-    """Inventarizatsiyani boshqarish"""
-    if request.method == 'GET':
-        inventories = Inventory.query.all()
-        return jsonify([{
-            'id': i.id,
-            'number': i.number,
-            'inventory_date': i.inventory_date.isoformat(),
-            'status': i.status
-        } for i in inventories])
+    """Inventarizatsiyani boshqarish (read-only)"""
+    inventories = Inventory.query.all()
+    return jsonify([{
+        'id': i.id,
+        'number': i.number,
+        'inventory_date': i.inventory_date.isoformat(),
+        'status': i.status
+    } for i in inventories])
 
-    if request.method == 'POST':
-        data = request.json
-        inventory = Inventory(
-            number=f"INV-{datetime.utcnow().timestamp()}",
-            status='Boshlangan'
-        )
-        db.session.add(inventory)
-        db.session.commit()
-        return jsonify({'id': inventory.id, 'number': inventory.number, 'message': 'Inventarizatsiya qo\'shildi'}), 201
+@app.route('/api/inventory', methods=['POST'])
+@login_required
+def create_inventory():
+    data = request.json
+    inventory = Inventory(
+        number=f"INV-{datetime.utcnow().timestamp()}",
+        status='Boshlangan'
+    )
+    db.session.add(inventory)
+    db.session.commit()
+    return jsonify({'id': inventory.id, 'number': inventory.number, 'message': 'Inventarizatsiya qo\'shildi'}), 201
 
-
-@app.route('/api/inventory/<int:inv_id>/items', methods=['GET', 'POST'])
+@app.route('/api/inventory/<int:inv_id>/items', methods=['GET'])
 @login_required
 def inventory_items(inv_id):
-    """Inventarizatsiya elementlarini boshqarish"""
-    inventory = Inventory.query.get_or_404(inv_id)
+    """Inventarizatsiya elementlarini boshqarish (read-only)"""
+    Inventory.query.get_or_404(inv_id)
+    items = InventoryItem.query.filter_by(inventory_id=inv_id).all()
+    return jsonify([{
+        'id': item.id,
+        'product_code': item.product_code,
+        'expected_quantity': item.expected_quantity,
+        'actual_quantity': item.actual_quantity,
+        'difference': item.difference
+    } for item in items])
 
-    if request.method == 'GET':
-        items = InventoryItem.query.filter_by(inventory_id=inv_id).all()
-        return jsonify([{
-            'id': item.id,
-            'product_code': item.product_code,
-            'expected_quantity': item.expected_quantity,
-            'actual_quantity': item.actual_quantity,
-            'difference': item.difference
-        } for item in items])
-
-    if request.method == 'POST':
-        data = request.json
-        item = InventoryItem(
-            inventory_id=inv_id,
-            product_id=data.get('product_id'),
-            product_code=data.get('product_code'),
-            expected_quantity=data.get('expected_quantity'),
-            actual_quantity=data.get('actual_quantity')
-        )
-        item.difference = item.actual_quantity - item.expected_quantity if item.actual_quantity and item.expected_quantity else 0
-        db.session.add(item)
-        db.session.commit()
-        return jsonify({'id': item.id, 'message': 'Element qo\'shildi'}), 201
+@app.route('/api/inventory/<int:inv_id>/items', methods=['POST'])
+@login_required
+def create_inventory_item(inv_id):
+    Inventory.query.get_or_404(inv_id)
+    data = request.json
+    item = InventoryItem(
+        inventory_id=inv_id,
+        product_id=data.get('product_id'),
+        product_code=data.get('product_code'),
+        expected_quantity=data.get('expected_quantity'),
+        actual_quantity=data.get('actual_quantity')
+    )
+    item.difference = item.actual_quantity - item.expected_quantity if item.actual_quantity and item.expected_quantity else 0
+    db.session.add(item)
+    db.session.commit()
+    return jsonify({'id': item.id, 'message': 'Element qo\'shildi'}), 201
 
 
 # ==================== INVOICE ROUTES ====================
 
-@app.route('/api/invoices', methods=['GET', 'POST'])
+@app.route('/api/invoices', methods=['GET'])
 @login_required
 def manage_invoices():
-    """Hisob-fakturalarni boshqarish"""
-    if request.method == 'GET':
-        invoices = Invoice.query.all()
-        return jsonify([{
-            'id': i.id,
-            'number': i.number,
-            'customer_name': i.customer.name,
-            'invoice_date': i.invoice_date.isoformat(),
-            'total_amount': i.total_amount,
-            'paid_amount': i.paid_amount,
-            'status': i.status
-        } for i in invoices])
+    """Hisob-fakturalarni boshqarish (read-only)"""
+    invoices = Invoice.query.all()
+    return jsonify([{
+        'id': i.id,
+        'number': i.number,
+        'customer_name': i.customer.name,
+        'invoice_date': i.invoice_date.isoformat(),
+        'total_amount': i.total_amount,
+        'paid_amount': i.paid_amount,
+        'status': i.status
+    } for i in invoices])
 
-    if request.method == 'POST':
-        data = request.json
-        invoice = Invoice(
-            number=f"INV-{datetime.utcnow().timestamp()}",
-            customer_id=data.get('customer_id'),
-            sales_order_id=data.get('sales_order_id'),
-            total_amount=data.get('total_amount', 0),
-            paid_amount=data.get('paid_amount', 0),
-            status=data.get('status', 'Yangi')
-        )
-        db.session.add(invoice)
-        db.session.commit()
-        return jsonify({'id': invoice.id, 'number': invoice.number, 'message': 'Hisob-faktura qo\'shildi'}), 201
+@app.route('/api/invoices', methods=['POST'])
+@login_required
+def create_invoice():
+    data = request.json
+    invoice = Invoice(
+        number=f"INV-{datetime.utcnow().timestamp()}",
+        customer_id=data.get('customer_id'),
+        sales_order_id=data.get('sales_order_id'),
+        total_amount=data.get('total_amount', 0),
+        paid_amount=data.get('paid_amount', 0),
+        status=data.get('status', 'Yangi')
+    )
+    db.session.add(invoice)
+    db.session.commit()
+    return jsonify({'id': invoice.id, 'number': invoice.number, 'message': 'Hisob-faktura qo\'shildi'}), 201
 
 
 # ==================== CASH REGISTER ROUTES ====================
 
-@app.route('/api/cash-registers', methods=['GET', 'POST'])
+@app.route('/api/cash-registers', methods=['GET'])
 @login_required
 def manage_cash_registers():
-    """Kasallarni boshqarish"""
-    if request.method == 'GET':
-        registers = CashRegister.query.all()
-        return jsonify([{
-            'id': r.id,
-            'name': r.name,
-            'code': r.code,
-            'balance': r.balance,
-            'currency': r.currency
-        } for r in registers])
+    """Kasallarni boshqarish (read-only)"""
+    registers = CashRegister.query.all()
+    return jsonify([{
+        'id': r.id,
+        'name': r.name,
+        'code': r.code,
+        'balance': r.balance,
+        'currency': r.currency
+    } for r in registers])
 
-    if request.method == 'POST':
-        data = request.json
-        register = CashRegister(
-            name=data.get('name'),
-            code=data.get('code'),
-            balance=data.get('balance', 0),
-            currency=data.get('currency', 'UZS')
-        )
-        db.session.add(register)
-        db.session.commit()
-        return jsonify({'id': register.id, 'message': 'Kassa qo\'shildi'}), 201
+@app.route('/api/cash-registers', methods=['POST'])
+@login_required
+def create_cash_register():
+    data = request.json
+    register = CashRegister(
+        name=data.get('name'),
+        code=data.get('code'),
+        balance=data.get('balance', 0),
+        currency=data.get('currency', 'UZS')
+    )
+    db.session.add(register)
+    db.session.commit()
+    return jsonify({'id': register.id, 'message': 'Kassa qo\'shildi'}), 201
 
 
-@app.route('/api/cash-transactions', methods=['GET', 'POST'])
+@app.route('/api/cash-transactions', methods=['GET'])
 @login_required
 def manage_cash_transactions():
-    """Kassa operatsiyalari"""
-    if request.method == 'GET':
-        transactions = CashTransaction.query.all()
-        return jsonify([{
-            'id': t.id,
-            'cash_register_id': t.cash_register_id,
-            'transaction_date': t.transaction_date.isoformat(),
-            'transaction_type': t.transaction_type,
-            'amount': t.amount,
-            'description': t.description,
-            'reference': t.reference
-        } for t in transactions])
+    """Kassa operatsiyalari (read-only)"""
+    transactions = CashTransaction.query.all()
+    return jsonify([{
+        'id': t.id,
+        'cash_register_id': t.cash_register_id,
+        'transaction_date': t.transaction_date.isoformat(),
+        'transaction_type': t.transaction_type,
+        'amount': t.amount,
+        'description': t.description,
+        'reference': t.reference
+    } for t in transactions])
 
-    if request.method == 'POST':
-        data = request.json
-        transaction = CashTransaction(
-            cash_register_id=data.get('cash_register_id'),
-            transaction_type=data.get('transaction_type'),
-            amount=data.get('amount'),
-            description=data.get('description'),
-            reference=data.get('reference')
-        )
-        
-        # Kassa balansini yangilash
-        register = CashRegister.query.get(data.get('cash_register_id'))
-        if transaction.transaction_type == 'Kirim':
-            register.balance += transaction.amount
-        else:
-            register.balance -= transaction.amount
-        
-        db.session.add(transaction)
-        db.session.commit()
-        return jsonify({'id': transaction.id, 'message': 'Operatsiya qo\'shildi'}), 201
+@app.route('/api/cash-transactions', methods=['POST'])
+@login_required
+def create_cash_transaction():
+    data = request.json
+    transaction = CashTransaction(
+        cash_register_id=data.get('cash_register_id'),
+        transaction_type=data.get('transaction_type'),
+        amount=data.get('amount'),
+        description=data.get('description'),
+        reference=data.get('reference')
+    )
+    register = CashRegister.query.get(data.get('cash_register_id'))
+    if transaction.transaction_type == 'Kirim':
+        register.balance += transaction.amount
+    else:
+        register.balance -= transaction.amount
+    db.session.add(transaction)
+    db.session.commit()
+    return jsonify({'id': transaction.id, 'message': 'Operatsiya qo\'shildi'}), 201
 
 
 # ==================== EXPENSE ROUTES ====================
 
-@app.route('/api/expenses', methods=['GET', 'POST'])
+@app.route('/api/expenses', methods=['GET'])
 @login_required
 def manage_expenses():
-    """Xarajatlarni boshqarish"""
-    if request.method == 'GET':
-        expenses = Expense.query.all()
-        return jsonify([{
-            'id': e.id,
-            'number': e.number,
-            'category': e.category,
-            'amount': e.amount,
-            'expense_date': e.expense_date.isoformat(),
-            'payment_method': e.payment_method,
-            'status': e.status
-        } for e in expenses])
+    """Xarajatlarni boshqarish (read-only)"""
+    expenses = Expense.query.all()
+    return jsonify([{
+        'id': e.id,
+        'number': e.number,
+        'category': e.category,
+        'amount': e.amount,
+        'expense_date': e.expense_date.isoformat(),
+        'payment_method': e.payment_method,
+        'status': e.status
+    } for e in expenses])
 
-    if request.method == 'POST':
-        data = request.json
-        expense = Expense(
-            number=f"EXP-{datetime.utcnow().timestamp()}",
-            category=data.get('category'),
-            amount=data.get('amount'),
-            description=data.get('description'),
-            payment_method=data.get('payment_method'),
-            status=data.get('status', 'Yangi')
-        )
-        db.session.add(expense)
-        db.session.commit()
-        return jsonify({'id': expense.id, 'number': expense.number, 'message': 'Xarajat qo\'shildi'}), 201
+@app.route('/api/expenses', methods=['POST'])
+@login_required
+def create_expense():
+    data = request.json
+    expense = Expense(
+        number=f"EXP-{datetime.utcnow().timestamp()}",
+        category=data.get('category'),
+        amount=data.get('amount'),
+        description=data.get('description'),
+        payment_method=data.get('payment_method'),
+        status=data.get('status', 'Yangi')
+    )
+    db.session.add(expense)
+    db.session.commit()
+    return jsonify({'id': expense.id, 'number': expense.number, 'message': 'Xarajat qo\'shildi'}), 201
 
 
 # ==================== ACCOUNTING ROUTES ====================
 
-@app.route('/api/journal-entries', methods=['GET', 'POST'])
+@app.route('/api/journal-entries', methods=['GET'])
 @login_required
 def manage_journal_entries():
-    """Bухgалтерия jurnali"""
-    if request.method == 'GET':
-        entries = JournalEntry.query.all()
-        return jsonify([{
-            'id': e.id,
-            'entry_number': e.entry_number,
-            'entry_date': e.entry_date.isoformat(),
-            'debit_account': e.debit_account,
-            'credit_account': e.credit_account,
-            'amount': e.amount,
-            'description': e.description,
-            'status': e.status
-        } for e in entries])
+    """Bухгалтерия jurnali (read-only)"""
+    entries = JournalEntry.query.all()
+    return jsonify([{
+        'id': e.id,
+        'entry_number': e.entry_number,
+        'entry_date': e.entry_date.isoformat(),
+        'debit_account': e.debit_account,
+        'credit_account': e.credit_account,
+        'amount': e.amount,
+        'description': e.description,
+        'status': e.status
+    } for e in entries])
 
-    if request.method == 'POST':
-        data = request.json
-        entry = JournalEntry(
-            entry_number=f"JE-{datetime.utcnow().timestamp()}",
-            debit_account=data.get('debit_account'),
-            credit_account=data.get('credit_account'),
-            amount=data.get('amount'),
-            description=data.get('description'),
-            status=data.get('status', 'Yangi')
-        )
-        db.session.add(entry)
-        db.session.commit()
-        return jsonify({'id': entry.id, 'message': 'Journal qo\'shildi'}), 201
+@app.route('/api/journal-entries', methods=['POST'])
+@login_required
+def create_journal_entry():
+    data = request.json
+    entry = JournalEntry(
+        entry_number=f"JE-{datetime.utcnow().timestamp()}",
+        debit_account=data.get('debit_account'),
+        credit_account=data.get('credit_account'),
+        amount=data.get('amount'),
+        description=data.get('description'),
+        status=data.get('status', 'Yangi')
+    )
+    db.session.add(entry)
+    db.session.commit()
+    return jsonify({'id': entry.id, 'message': 'Journal qo\'shildi'}), 201
 
-
-@app.route('/api/accounts', methods=['GET', 'POST'])
+@app.route('/api/accounts', methods=['GET'])
 @login_required
 def manage_accounts():
-    """Bухgалтерия hisoblarini boshqarish"""
-    if request.method == 'GET':
-        accounts = Account.query.all()
-        return jsonify([{
-            'id': a.id,
-            'code': a.code,
-            'name': a.name,
-            'account_type': a.account_type,
-            'balance': a.balance,
-            'currency': a.currency
-        } for a in accounts])
+    """Bухгалтерия hisoblarini boshqarish (read-only)"""
+    accounts = Account.query.all()
+    return jsonify([{
+        'id': a.id,
+        'code': a.code,
+        'name': a.name,
+        'account_type': a.account_type,
+        'balance': a.balance,
+        'currency': a.currency
+    } for a in accounts])
 
-    if request.method == 'POST':
-        data = request.json
-        account = Account(
-            code=data.get('code'),
-            name=data.get('name'),
-            account_type=data.get('account_type'),
-            balance=data.get('balance', 0),
-            currency=data.get('currency', 'UZS')
-        )
-        db.session.add(account)
-        db.session.commit()
+@app.route('/api/accounts', methods=['POST'])
+@login_required
+def create_account():
+    data = request.json
+    account = Account(
+        code=data.get('code'),
+        name=data.get('name'),
+        account_type=data.get('account_type'),
+        balance=data.get('balance', 0),
+        currency=data.get('currency', 'UZS')
+    )
+    db.session.add(account)
+    db.session.commit()
+    return jsonify({'id': account.id, 'message': 'Account qo\'shildi'}), 201
         return jsonify({'id': account.id, 'message': 'Hisob qo\'shildi'}), 201
 
 

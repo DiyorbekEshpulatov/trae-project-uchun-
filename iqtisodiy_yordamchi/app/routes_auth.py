@@ -7,55 +7,55 @@ from datetime import datetime, timedelta
 def init_auth_routes(app, db, User, OTPCode, generate_otp, send_otp_sms):
     """Auth routelari yaratish"""
     
-    @app.route('/register', methods=['GET', 'POST'])
+    @app.route('/register', methods=['GET'])
     def register():
         """Ro'yxatdan o'tish"""
-        if request.method == 'POST':
-            data = request.json
-            username = data.get('username')
-            email = data.get('email')
-            phone = data.get('phone')
-            password = data.get('password')
-
-            if User.query.filter_by(username=username).first():
-                return jsonify({'error': 'Foydalanuvchi allaqachon mavjud'}), 400
-
-            user = User(username=username, email=email, phone=phone, role_id=3)
-            user.set_password(password)
-            db.session.add(user)
-            db.session.commit()
-
-            return jsonify({'id': user.id, 'message': 'Ro\'yxat muvaffaqiyatli'}), 201
-
         return render_template('register.html')
 
+    @app.route('/register', methods=['POST'])
+    def register_post():
+        """Ro'yxatdan o'tish"""
+        data = request.json
+        username = data.get('username')
+        email = data.get('email')
+        phone = data.get('phone')
+        password = data.get('password')
 
-    @app.route('/login', methods=['GET', 'POST'])
+        if User.query.filter_by(username=username).first():
+            return jsonify({'error': 'Foydalanuvchi allaqachon mavjud'}), 400
+
+        user = User(username=username, email=email, phone=phone, role_id=3)
+        user.set_password(password)
+        db.session.add(user)
+        db.session.commit()
+
+        return jsonify({'id': user.id, 'message': 'Ro\'yxat muvaffaqiyatli'}), 201
+
+    @app.route('/login', methods=['POST'])
     def login():
         """Kirish va OTP yuborish"""
-        if request.method == 'POST':
-            data = request.json
-            username = data.get('username')
-            password = data.get('password')
+        data = request.json
+        username = data.get('username')
+        password = data.get('password')
 
-            user = User.query.filter_by(username=username).first()
-            if user and user.check_password(password) and user.is_active:
-                otp_code = generate_otp()
-                otp = OTPCode(
-                    user_id=user.id,
-                    code=otp_code,
-                    expires_at=datetime.utcnow() + timedelta(minutes=5)
-                )
-                db.session.add(otp)
-                db.session.commit()
+        user = User.query.filter_by(username=username).first()
+        if user and user.check_password(password) and user.is_active:
+            otp_code = generate_otp()
+            otp = OTPCode(
+                user_id=user.id,
+                code=otp_code,
+                expires_at=datetime.utcnow() + timedelta(minutes=5)
+            )
+            db.session.add(otp)
+            db.session.commit()
                 
-                send_otp_sms(user.phone, otp_code)
+            send_otp_sms(user.phone, otp_code)
                 
-                return jsonify({
-                    'message': 'OTP kod yuborildi',
-                    'user_id': user.id,
-                    'otp_id': otp.id
-                }), 200
+            return jsonify({
+                'message': 'OTP kod yuborildi',
+                'user_id': user.id,
+                'otp_id': otp.id
+            }), 200
             
             return jsonify({'error': 'Noto\'g\'ri foydalanuvchi yoki parol'}), 401
 
