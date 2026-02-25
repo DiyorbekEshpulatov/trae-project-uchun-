@@ -1,6 +1,6 @@
 // @ts-nocheck
 // Mock NestJS decorator
-const Module = (options: any) => (target: any) => {};
+const Module = (_options: any) => (_target: any) => {};
 
 import { CompaniesService } from './companies.service';
 import { CompaniesController } from './companies.controller';

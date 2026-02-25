@@ -1,6 +1,6 @@
 // @ts-nocheck
 // Mock NestJS decorator
-const Module = (options: any) => (target: any) => {};
+const Module = (_options: any) => (_target: any) => {};
 
 import { ReportsService } from './reports.service';
 import { ReportsController } from './reports.controller';

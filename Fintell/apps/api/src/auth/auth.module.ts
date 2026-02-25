@@ -1,8 +1,8 @@
 // @ts-nocheck
 // Mock NestJS decorators and modules
-const Module = (options: any) => (target: any) => {};
+const Module = (_options: any) => (_target: any) => {};
 const JwtModule = {
-  register: (options: any) => ({})
+  register: (_options: any) => ({})
 };
 const PassportModule = {};
 
