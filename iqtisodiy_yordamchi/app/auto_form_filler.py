@@ -19,7 +19,8 @@ class AutomaticFormFiller:
     def __init__(self, db=None):
         self.db = db
     
-    def generate_sales_report_form(self, period: str, db_session) -> Dict:
+    @staticmethod
+    def generate_sales_report_form(period: str, db_session) -> Dict:
         """
         Savdo hisobot formasi yaratish va to'ldirish
         
@@ -80,7 +81,7 @@ class AutomaticFormFiller:
         except Exception as e:
             logger.error(f"Savdo hisobot formasi yaratishda xato: {str(e)}")
             return {'success': False, 'error': str(e)}
-    
+
     def generate_purchase_report_form(self, period: str, db_session) -> Dict:
         """Sotib olish hisobot formasi yaratish"""
         try:
@@ -119,7 +120,7 @@ class AutomaticFormFiller:
         except Exception as e:
             logger.error(f"Sotib olish hisobot formasi yaratishda xato: {str(e)}")
             return {'success': False, 'error': str(e)}
-    
+
     def generate_inventory_report_form(self, db_session) -> Dict:
         """Inventar hisobot formasi yaratish"""
         try:
@@ -148,7 +149,7 @@ class AutomaticFormFiller:
         except Exception as e:
             logger.error(f"Inventar hisobot formasi yaratishda xato: {str(e)}")
             return {'success': False, 'error': str(e)}
-    
+
     def generate_financial_report_form(self, period: str, db_session) -> Dict:
         """Moliyaviy hisobot formasi yaratish"""
         try:
@@ -182,7 +183,7 @@ class AutomaticFormFiller:
         except Exception as e:
             logger.error(f"Moliyaviy hisobot formasi yaratishda xato: {str(e)}")
             return {'success': False, 'error': str(e)}
-    
+
     def generate_cash_flow_report_form(self, period: str, db_session) -> Dict:
         """Pul oqimi hisobot formasi yaratish"""
         try:
@@ -219,7 +220,7 @@ class AutomaticFormFiller:
         except Exception as e:
             logger.error(f"Pul oqimi hisobot formasi yaratishda xato: {str(e)}")
             return {'success': False, 'error': str(e)}
-    
+
     def fill_tax_form(self, period: str, financial_data: Dict) -> Dict:
         """Soliq deklaratsiya formasi to'ldirish"""
         try:
@@ -262,8 +263,9 @@ class AutomaticFormFiller:
         except Exception as e:
             logger.error(f"Soliq formasi to'ldirishda xato: {str(e)}")
             return {'success': False, 'error': str(e)}
-    
-    def fill_vat_form(self, period: str, sales_total: float, purchases_total: float) -> Dict:
+
+    @staticmethod
+    def fill_vat_form(period: str, sales_total: float, purchases_total: float) -> Dict:
         """KDV formasi to'ldirish"""
         try:
             vat_rate = 0.12  # Default 12%
@@ -291,57 +293,58 @@ class AutomaticFormFiller:
                     'sales_vat': {
                         'total_sales': sales_total,
                         'vat_collected': sales_total * vat_rate,
-                        'rate': f"{vat_rate * 100}%"
-                    },
-                    'purchase_vat': {
-                        'total_purchases': purchases_total,
-                        'vat_paid': purchases_total * vat_rate,
-                        'rate': f"{vat_rate * 100}%"
-                    },
-                    'net_vat': {
-                        'vat_payable': (sales_total - purchases_total) * vat_rate,
-                        'status': 'Due'
-                    }
+                    'rate': f"{vat_rate * 100}%"
+                },
+                'purchase_vat': {
+                    'total_purchases': purchases_total,
+                    'vat_paid': purchases_total * vat_rate,
+                    'rate': f"{vat_rate * 100}%"
+                },
+                'net_vat': {
+                    'vat_payable': (sales_total - purchases_total) * vat_rate,
+                    'status': 'Due'
                 }
             }
-            
-            logger.info(f"KDV formasi to'ldirildi: {period}")
-            
-            return {
-                'success': True,
-                'form_type': 'vat_return',
-                'form_data': vat_form
-            }
-        except Exception as e:
-            logger.error(f"KDV formasi to'ldirishda xato: {str(e)}")
-            return {'success': False, 'error': str(e)}
-    
-    def fill_payroll_form(self, period: str, employee_count: int, total_salary: float) -> Dict:
-        """Oylik formasi to'ldirish"""
-        try:
-            pit_rate = 0.12  # 12% PIT
-            pension_rate = 0.03  # 3% Pension
-            
-            payroll_form = {
-                'period': period,
-                'submission_date': datetime.now().strftime('%Y-%m-%d'),
-                'form_type': 'Payroll Report',
-                'form_number': f"PAYROLL-{period.replace('-', '')}-001",
-                'sections': {
-                    'employee_info': {
-                        'total_employees': employee_count,
-                        'report_date': datetime.now().strftime('%Y-%m-%d')
-                    },
-                    'salary_section': {
-                        'gross_salary': total_salary,
-                        'employee_count': employee_count,
-                        'average_salary': total_salary / employee_count if employee_count > 0 else 0
-                    },
-                    'deductions': {
-                        'pit_amount': total_salary * pit_rate,
-                        'pit_rate': f"{pit_rate * 100}%",
-                        'pension_amount': total_salary * pension_rate,
-                        'pension_rate': f"{pension_rate * 100}%",
+        }
+        
+        logger.info(f"KDV formasi to'ldirildi: {period}")
+        
+        return {
+            'success': True,
+            'form_type': 'vat_return',
+            'form_data': vat_form
+        }
+    except Exception as e:
+        logger.error(f"KDV formasi to'ldirishda xato: {str(e)}")
+        return {'success': False, 'error': str(e)}
+        
+        @staticmethod
+        def fill_payroll_form(period: str, employee_count: int, total_salary: float) -> Dict:
+    """Oylik formasi to'ldirish"""
+    try:
+        pit_rate = 0.12  # 12% PIT
+        pension_rate = 0.03  # 3% Pension
+        
+        payroll_form = {
+            'period': period,
+            'submission_date': datetime.now().strftime('%Y-%m-%d'),
+            'form_type': 'Payroll Report',
+            'form_number': f"PAYROLL-{period.replace('-', '')}-001",
+            'sections': {
+                'employee_info': {
+                    'total_employees': employee_count,
+                    'report_date': datetime.now().strftime('%Y-%m-%d')
+                },
+                'salary_section': {
+                    'gross_salary': total_salary,
+                    'employee_count': employee_count,
+                    'average_salary': total_salary / employee_count if employee_count > 0 else 0
+                },
+                'deductions': {
+                    'pit_amount': total_salary * pit_rate,
+                    'pit_rate': f"{pit_rate * 100}%",
+                    'pension_amount': total_salary * pension_rate,
+                    'pension_rate': f"{pension_rate * 100}%",
                         'total_deductions': (total_salary * pit_rate) + (total_salary * pension_rate)
                     },
                     'net_payable': {
