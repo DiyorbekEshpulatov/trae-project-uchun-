@@ -53,7 +53,7 @@ def main():
         'python-dotenv': 'dotenv',
         'openai': 'openai',
     }
-    
+
     for name, module in imports_to_test.items():
         try:
             __import__(module)
@@ -61,15 +61,15 @@ def main():
         except ImportError:
             print(f"   ⚠️  {name} (o'rnatilmagan - xavf emas)")
     print()
-    
+
     # TEST 3: EXCEL GENERATOR CHECK
     print("📊 TEST 3: Excel Generator Moduli")
     print("-" * 70)
     try:
         from app.excel_generator import ExcelTableGenerator
         gen = ExcelTableGenerator()
-        print(f"   ✅ ExcelTableGenerator klasi yaratildi")
-        print(f"   ✅ Metodlar:")
+        print("   ✅ ExcelTableGenerator klasi yaratildi")
+        print("   ✅ Metodlar:")
         methods = ['create_sales_table', 'create_purchase_table', 'create_inventory_table', 
                    'create_financial_report', 'create_account_ledger', 'create_multi_sheet_workbook']
         for method in methods:
@@ -80,15 +80,15 @@ def main():
         print()
     except Exception as e:
         print(f"   ❌ Excel Generator xatosi: {e}\n")
-    
+
     # TEST 4: AUTO FORM FILLER CHECK
     print("📝 TEST 4: Auto Form Filler Moduli")
     print("-" * 70)
     try:
         from app.auto_form_filler import AutomaticFormFiller
         filler = AutomaticFormFiller()
-        print(f"   ✅ AutomaticFormFiller klasi yaratildi")
-        print(f"   ✅ Metodlar:")
+        print("   ✅ AutomaticFormFiller klasi yaratildi")
+        print("   ✅ Metodlar:")
         methods = ['generate_sales_report_form', 'generate_purchase_report_form', 
                    'generate_inventory_report_form', 'generate_financial_report_form',
                    'fill_tax_form', 'fill_vat_form', 'fill_payroll_form', 'generate_all_forms']
@@ -100,15 +100,15 @@ def main():
         print()
     except Exception as e:
         print(f"   ❌ Auto Form Filler xatosi: {e}\n")
-    
+
     # TEST 5: TAX INTEGRATION CHECK
     print("💰 TEST 5: Soliq Integr. Moduli")
     print("-" * 70)
     try:
         from app.tax_integration import TaxCabinetAPIdev
         tax = TaxCabinetAPIdev()
-        print(f"   ✅ TaxCabinetAPIdev klasi yaratildi")
-        print(f"   ✅ Metodlar:")
+        print("   ✅ TaxCabinetAPIdev klasi yaratildi")
+        print("   ✅ Metodlar:")
         methods = ['send_sales_report', 'send_tax_declaration', 'send_vat_report', 
                    'send_employee_payroll', 'get_tax_status']
         for method in methods:
@@ -119,31 +119,31 @@ def main():
         print()
     except Exception as e:
         print(f"   ❌ Tax Integration xatosi: {e}\n")
-    
+
     # TEST 6: OCR PROCESSOR CHECK
     print("🖼️  TEST 6: OCR Processor Moduli")
     print("-" * 70)
     try:
         from app.ocr_processor import OCRProcessor
         ocr = OCRProcessor()
-        print(f"   ✅ OCRProcessor klasi yaratildi")
-        print(f"   ℹ️  Tesseract-OCR o'rnatilishi kerak (Windows/Linux)")
+        print("   ✅ OCRProcessor klasi yaratildi")
+        print("   ℹ️  Tesseract-OCR o'rnatilishi kerak (Windows/Linux)")
         print()
     except Exception as e:
         print(f"   ⚠️  OCR Processor xatosi: {e}\n")
-    
+
     # TEST 7: TELEGRAM BOT CHECK
     print("📱 TEST 7: Telegram Bot Moduli")
     print("-" * 70)
     try:
         from app.telegram_bot import TelegramBot
         bot = TelegramBot(token="dummy_token")
-        print(f"   ✅ TelegramBot klasi yaratildi")
-        print(f"   ℹ️  TELEGRAM_BOT_TOKEN .env'da kerak")
+        print("   ✅ TelegramBot klasi yaratildi")
+        print("   ℹ️  TELEGRAM_BOT_TOKEN .env'da kerak")
         print()
     except Exception as e:
         print(f"   ❌ Telegram Bot xatosi: {e}\n")
-    
+
     # TEST 8: FORMULAS CHECK
     print("🧮 TEST 8: Hisobotlar Formulalari")
     print("-" * 70)
@@ -153,13 +153,13 @@ def main():
         ("Soliq (12%)", 5000000, 2000000, (5000000-2000000)*0.12, (5000000-2000000)*0.12, "=(Income-Expenses)*12%"),
         ("KDV (10%)", 5000000, 2000000, (5000000-2000000)*0.10, (5000000-2000000)*0.10, "=(Sales-Purchases)*10%"),
     ]
-    
+
     for name, a, b, c, result, formula in test_cases:
         print(f"   ✅ {name}")
         print(f"      Formula: {formula}")
         print(f"      Natija: {result:,}")
     print()
-    
+
     # TEST 9: FILE STRUCTURE CHECK
     print("📁 TEST 9: Fayl Tuzilishi")
     print("-" * 70)
@@ -195,10 +195,10 @@ def main():
         app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'
         db = SQLAlchemy(app)
         
-        print(f"   ✅ Flask app yasalgan")
-        print(f"   ✅ SQLAlchemy konfiguratsiyalangan")
-        print(f"   ✅ Database: SQLite (development)")
-        print(f"   ℹ️  Production uchun PostgreSQL tavsiya etiladi")
+        print("   ✅ Flask app yasalgan")
+        print("   ✅ SQLAlchemy konfiguratsiyalangan")
+        print("   ✅ Database: SQLite (development)")
+        print("   ℹ️  Production uchun PostgreSQL tavsiya etiladi")
         print()
     except Exception as e:
         print(f"   ❌ Database sozlamasi xatosi: {e}\n")

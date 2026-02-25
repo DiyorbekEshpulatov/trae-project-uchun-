@@ -1632,7 +1632,7 @@ def run_tests():
             # Database'ni yaratish
             init_db()
             user_count = User.query.count()
-            print(f"   ✅ Database qayd'ga olindi")
+            print("   ✅ Database qayd'ga olindi")
             print(f"   ✅ Foydalanuvchilar: {user_count}\n")
         except Exception as e:
             print(f"   ❌ Database xatosi: {e}\n")
@@ -1673,7 +1673,7 @@ def run_tests():
             print()
         except Exception as e:
             print(f"   ❌ Excel test xatosi: {e}\n")
-        
+
         # 3. AUTO FORM FILLER TEST
         print("📝 TEST 3: Avtomatik Formalar To'ldirish")
         try:
@@ -1691,17 +1691,17 @@ def run_tests():
                 ]
             )
             
-            print(f"   ✅ Savdo hisobot formasi yaratildi")
-            print(f"   ✅ Sotib olish hisobot formasi yaratildi")
-            print(f"   ✅ Inventar hisobot formasi yaratildi")
-            print(f"   ✅ Moliyaviy hisobot formasi yaratildi")
+            print("   ✅ Savdo hisobot formasi yaratildi")
+            print("   ✅ Sotib olish hisobot formasi yaratildi")
+            print("   ✅ Inventar hisobot formasi yaratildi")
+            print("   ✅ Moliyaviy hisobot formasi yaratildi")
             print(f"   ✅ Soliq Deklaratsiya formasi yaratildi (12% = {forms['tax']['tax_payable']:,})")
             print(f"   ✅ KDV Formasi yaratildi (10% = {forms['vat']['vat_payable']:,})")
             print(f"   ✅ Oylik Formasi yaratildi (Total Deductions: {forms['payroll']['total_deductions']:,})")
             print()
         except Exception as e:
             print(f"   ❌ Form filler test xatosi: {e}\n")
-        
+
         # 4. TAX INTEGRATION TEST
         print("💰 TEST 4: Soliq Kabineti Integr.")
         try:
@@ -1738,7 +1738,7 @@ def run_tests():
             print()
         except Exception as e:
             print(f"   ❌ Tax integration test xatosi: {e}\n")
-        
+
         # 5. OCR PROCESSOR TEST
         print("🖼️  TEST 5: OCR Hujjat Skaneri")
         try:
@@ -1746,24 +1746,24 @@ def run_tests():
             ocr = OCRProcessor()
             
             # Dummy test - real fayl bo'lmasa
-            print(f"   ✅ OCR Processor yasalgan")
-            print(f"   ℹ️  Invoice extraction uchun tesseract-ocr kerak:")
-            print(f"      Windows: choco install tesseract")
-            print(f"      Linux: sudo apt-get install tesseract-ocr")
+            print("   ✅ OCR Processor yasalgan")
+            print("   ℹ️  Invoice extraction uchun tesseract-ocr kerak:")
+            print("      Windows: choco install tesseract")
+            print("      Linux: sudo apt-get install tesseract-ocr")
             print()
         except Exception as e:
             print(f"   ℹ️  OCR test: {e}\n")
-        
+
         # 6. TELEGRAM BOT TEST
         print("📱 TEST 6: Telegram Bot")
         try:
             from app.telegram_bot import TelegramBot
             bot = TelegramBot(token="test_token")
-            print(f"   ✅ Telegram Bot yasalgan")
-            print(f"   ℹ️  Xabarlarni yuborish uchun TELEGRAM_BOT_TOKEN kerak\n")
+            print("   ✅ Telegram Bot yasalgan")
+            print("   ℹ️  Xabarlarni yuborish uchun TELEGRAM_BOT_TOKEN kerak\n")
         except Exception as e:
             print(f"   ❌ Telegram bot test xatosi: {e}\n")
-        
+
         # 7. MODELS TEST
         print("🗄️  TEST 7: Database Modellari")
         try:
@@ -1784,7 +1784,7 @@ def run_tests():
             print()
         except Exception as e:
             print(f"   ❌ Models test xatosi: {e}\n")
-        
+
         # 8. API ENDPOINTS TEST
         print("🌐 TEST 8: API Endpoints Mavjudligi")
         try:

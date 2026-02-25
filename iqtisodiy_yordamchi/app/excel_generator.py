@@ -316,7 +316,7 @@ class ExcelTableGenerator:
             self.ws['A11'] = "JAMI XARAJATLAR"
             self.ws['A11'].font = Font(bold=True)
             self.ws['A11'].fill = self.total_fill
-            self.ws['B11'] = f"=B8+B9+B10"
+            self.ws['B11'] = "=B8+B9+B10"
             self.ws['B11'].font = Font(bold=True)
             self.ws['B11'].fill = self.total_fill
             self.ws['B11'].number_format = '#,##0'
@@ -325,7 +325,7 @@ class ExcelTableGenerator:
             self.ws['A13'] = "FOYDA/ZARAR"
             self.ws['A13'].font = Font(bold=True, size=12)
             self.ws['A13'].fill = PatternFill(start_color="92D050", end_color="92D050", fill_type="solid")
-            self.ws['B13'] = f"=B5-B11"
+            self.ws['B13'] = "=B5-B11"
             self.ws['B13'].font = Font(bold=True, size=12)
             self.ws['B13'].fill = PatternFill(start_color="92D050", end_color="92D050", fill_type="solid")
             self.ws['B13'].number_format = '#,##0'
@@ -335,11 +335,11 @@ class ExcelTableGenerator:
             self.ws['A15'].font = Font(bold=True, size=12)
             
             self.ws['A16'] = "Foyda Foizi"
-            self.ws['B16'] = f"=IF(B5=0,0,(B13/B5)*100)"
+            self.ws['B16'] = "=IF(B5=0,0,(B13/B5)*100)"
             self.ws['B16'].number_format = '0.00"%"'
             
             self.ws['A17'] = "Xarajat Foizi"
-            self.ws['B17'] = f"=IF(B5=0,0,(B11/B5)*100)"
+            self.ws['B17'] = "=IF(B5=0,0,(B11/B5)*100)"
             self.ws['B17'].number_format = '0.00"%"'
             
             # Column widths
@@ -357,7 +357,7 @@ class ExcelTableGenerator:
         except Exception as e:
             logger.error(f"Moliyaviy hisobot yaratishda xato: {str(e)}")
             return {'success': False, 'error': str(e)}
-    
+
     def create_account_ledger(self, ledger_data: List[Dict], account_name: str, output_file: str = 'ledger.xlsx'):
         """
         Hisobi ledger yaratish

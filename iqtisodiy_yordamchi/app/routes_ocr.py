@@ -292,10 +292,10 @@ def init_ocr_routes(app, db, User, login_required):
     def export_results(format):
         """
         Ajratilgan ma'lumotlarni Excel yoki JSON qilib export qilish
-        
+
         Args:
             format: 'excel' yoki 'json'
-        
+
         Request body:
         {
             "results": [...]  # OCR natijalar
@@ -303,7 +303,7 @@ def init_ocr_routes(app, db, User, login_required):
         """
         try:
             if format not in ['excel', 'json']:
-                return jsonify({'error': 'Noto\'g\'ri format'}), 400
+                return jsonify({'error': 'Noto'g'ri format'}), 400
             
             data = request.get_json()
             results = data.get('results', [])
@@ -316,7 +316,7 @@ def init_ocr_routes(app, db, User, login_required):
                 with open(output_file, 'w', encoding='utf-8') as f:
                     json.dump(results, f, ensure_ascii=False, indent=2)
                 
-                return send_file(output_file, as_attachment=True, download_name=f"ocr_results.json")
+                return send_file(output_file, as_attachment=True, download_name="ocr_results.json")
             
             elif format == 'excel':
                 # Excel export
