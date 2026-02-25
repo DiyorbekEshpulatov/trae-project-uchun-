@@ -2,8 +2,8 @@
 
 // @ts-nocheck
 // Mock React hooks
-const useState = (initial: any) => [initial, (newState: any) => {}];
-const useEffect = (callback: () => void, deps?: any[]) => {};
+const useState = (initial: any) => [initial, (_newState: any) => {}];
+const useEffect = (_callback: () => void, _deps?: any[]) => {};
 
 export default function Dashboard() {
   const [stats, setStats] = useState({

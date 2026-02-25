@@ -1,18 +1,18 @@
 // @ts-nocheck
 // Mock NestJS decorator
-const Injectable = () => (target: any) => {};
+const Injectable = () => (_target: any) => {};
 
 // Mock Prisma service
 class PrismaService {
   product = {
-    findMany: async (query: any) => [],
-    count: async (query: any) => 0,
-    groupBy: async (options: any) => []
+    findMany: async () => [],
+    count: async (_query: any) => 0,
+    groupBy: async (_options: any) => []
   };
   transaction = {
-    findMany: async (query: any) => [],
-    count: async (query: any) => 0,
-    aggregate: async (options: any) => ({ _sum: { amount: 0 } })
+    findMany: async (_query: any) => [],
+    count: async (_query: any) => 0,
+    aggregate: async (_options: any) => ({ _sum: { amount: 0 } })
   };
 }
 

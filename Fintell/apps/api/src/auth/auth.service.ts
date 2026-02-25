@@ -1,16 +1,10 @@
 // @ts-nocheck
 // Mock NestJS decorators and services
-const Injectable = () => (target: any) => {};
-class UnauthorizedException extends Error {
-  constructor(message?: string) {
-    super(message);
-    this.name = 'UnauthorizedException';
-  }
-}
+const Injectable = () => (_target: any) => {};
 
 // Mock services - will be available after npm install
 class JwtService {
-  sign(payload: any): string {
+  sign(_payload: any): string {
     return 'mock-jwt-token';
   }
 }
@@ -18,13 +12,13 @@ class JwtService {
 // Mock Prisma service
 class PrismaService {
   user = {
-    findUnique: async (query: any) => null
+    findUnique: async (_query: any) => null
   };
 }
 
 // Mock bcrypt
 const bcrypt = {
-  compare: async (password: string, hash: string) => false
+  compare: async (_password: string, _hash: string) => false
 };
 
 @Injectable()
@@ -40,7 +34,7 @@ export class AuthService {
     });
 
     if (user && await bcrypt.compare(password, user.password)) {
-      const { password, ...result } = user;
+      const { password: _password, ...result } = user;
       return result;
     }
     return null;
