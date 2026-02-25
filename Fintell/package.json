@@ -1,0 +1,29 @@
+{
+  "name": "smartaccounting-ai",
+  "version": "1.0.0",
+  "description": "Sun'iy Intelekt asosida buxgalteriya platformasi",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "start": "turbo start",
+    "clean": "turbo clean",
+    "docker:build": "turbo docker:build",
+    "docker:dev": "docker-compose -f docker-compose.dev.yml up --build",
+    "docker:prod": "docker-compose -f docker-compose.prod.yml up --build"
+  },
+  "devDependencies": {
+    "turbo": "^1.12.3",
+    "typescript": "^5.3.3",
+    "@types/node": "^20.10.5",
+    "eslint": "^8.56.0"
+  },
+
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Company {
+  id        String   @id @default(uuid())
+  name      String
+  inn       String   @unique
+  legalForm String?  @map("legal_form")
+  address   String?
+  phone     String?
+  email     String?
+  director  String?  @map("director_name")
+  accountant String? @map("accountant_name")
+  mysoliq   Json?    @map("mysoliq_credentials")
+  stat      Json?    @map("stat_credentials")
+  settings  Json?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
+  users     User[]
+  products  Product[]
+
+  @@map("companies")
+}
+
+model User {
+  id           String    @id @default(uuid())
+  companyId    String?   @map("company_id")
+  company      Company?  @relation(fields: [companyId], references: [id])
+  fullName     String    @map("full_name")
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  role         String
+  permissions  Json?
+  lastLogin    DateTime? @map("last_login")
+  isActive     Boolean   @default(true) @map("is_active")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @default(now()) @map("updated_at")
+
+  @@map("users")
+}
+
+model Product {
+  id            String   @id @default(uuid())
+  companyId     String?  @map("company_id")
+  company       Company? @relation(fields: [companyId], references: [id])
+  code          String?
+  name          String
+  barcode       String?
+  unit          String?
+  purchasePrice Decimal? @map("purchase_price")
+  salePrice     Decimal? @map("sale_price")
+  vatRate       Decimal? @default(15.00) @map("vat_rate")
+  stockQuantity Decimal? @default(0) @map("stock_quantity")
+  isActive      Boolean  @default(true) @map("is_active")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @default(now()) @map("updated_at")
+
+  @@map("products")
+}
