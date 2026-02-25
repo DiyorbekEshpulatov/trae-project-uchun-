@@ -1,11 +1,11 @@
 // @ts-nocheck
 // Mock NestJS decorator
-const Injectable = () => (target: any) => {};
+const Injectable = () => (_target: any) => {};
 
 // Mock AuthGuard
 class AuthGuard {
-  constructor(strategy: string) {}
-  canActivate(context: any): boolean {
+  constructor(_strategy: string) {}
+  canActivate(_context: any): boolean {
     return true; // Mock implementation
   }
 }

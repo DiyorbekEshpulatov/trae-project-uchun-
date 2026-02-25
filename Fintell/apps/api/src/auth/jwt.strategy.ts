@@ -1,10 +1,10 @@
 // @ts-nocheck
 // Mock NestJS decorator
-const Injectable = () => (target: any) => {};
+const Injectable = () => (_target: any) => {};
 
 // Mock passport strategy
 class PassportStrategy {
-  constructor(strategy: any) {
+  constructor(_strategy: any) {
     // Mock implementation
   }
 }
@@ -15,7 +15,7 @@ const ExtractJwt = {
 };
 
 const Strategy = class {
-  constructor(options: any) {}
+  constructor(_options: any) {}
 };
 
 @Injectable()

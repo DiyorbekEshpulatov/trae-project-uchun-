@@ -1,5 +1,4 @@
 // [build] library: 'shadcn'
-import { ChevronRight, Slash } from "lucide-react";
 
 import {
   Breadcrumb,

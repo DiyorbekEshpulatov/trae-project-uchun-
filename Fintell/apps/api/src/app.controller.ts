@@ -1,10 +1,10 @@
 // @ts-nocheck
 // NestJS decorators - will be available after npm install
-const Controller = (path?: string) => (target: any) => {
+const Controller = (_path?: string) => (_target: any) => {
   // Controller decorator implementation
 };
 
-const Get = (path?: string) => (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
+const Get = (_path?: string) => (_target: any, _propertyKey: string, _descriptor: PropertyDescriptor) => {
   // Get decorator implementation
 };
 

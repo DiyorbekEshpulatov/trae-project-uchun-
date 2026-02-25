@@ -1,14 +1,14 @@
 // @ts-nocheck
 // Mock NestJS decorators
-const Controller = (path?: string) => (target: any) => {};
-const Get = (path?: string) => (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {};
-const Post = (path?: string) => (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {};
-const Body = () => (target: any, propertyKey: string, parameterIndex: number) => {};
-const Patch = (path?: string) => (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {};
-const Param = (param?: string) => (target: any, propertyKey: string, parameterIndex: number) => {};
-const Delete = (path?: string) => (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {};
-const UseGuards = (...guards: any[]) => (target: any, propertyKey?: string, descriptor?: PropertyDescriptor) => {};
-const Request = () => (target: any, propertyKey: string, parameterIndex: number) => {};
+const Controller = (_path?: string) => (_target: any) => {};
+const Get = (_path?: string) => (_target: any, _propertyKey: string, _descriptor: PropertyDescriptor) => {};
+const Post = (_path?: string) => (_target: any, _propertyKey: string, _descriptor: PropertyDescriptor) => {};
+const Body = () => (_target: any, _propertyKey: string, _parameterIndex: number) => {};
+const Patch = (_path?: string) => (_target: any, _propertyKey: string, _descriptor: PropertyDescriptor) => {};
+const Param = (_param?: string) => (_target: any, _propertyKey: string, _parameterIndex: number) => {};
+const Delete = (_path?: string) => (_target: any, _propertyKey: string, _descriptor: PropertyDescriptor) => {};
+const UseGuards = (..._guards: any[]) => (_target: any, _propertyKey?: string, _descriptor?: PropertyDescriptor) => {};
+const Request = () => (_target: any, _propertyKey: string, _parameterIndex: number) => {};
 
 import { ProductsService } from './products.service';
 
