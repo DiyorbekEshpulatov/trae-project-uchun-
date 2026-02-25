@@ -5,7 +5,6 @@ OCR (Optical Character Recognition) Moduli
 Qogozi hujjatlarni skanerlash va matn ajratib olish
 Tesseract.js (JavaScript) yoki pytesseract (Python) orqali
 """
-
 import pytesseract
 from PIL import Image
 import os
@@ -30,7 +29,8 @@ class OCRProcessor:
             logger.warning(f"Tesseract OCR o'rnatilmagan: {e}")
             logger.info("O'rnatish: https://github.com/UB-Mannheim/tesseract/wiki")
     
-    def extract_text_from_image(self, image_path: str, lang: str = 'uzb+eng') -> Dict:
+    @staticmethod
+    def extract_text_from_image(image_path: str, lang: str = 'uzb+eng') -> Dict:
         """
         Rasmdan matn ajratib olish
         
@@ -114,8 +114,9 @@ class OCRProcessor:
         except Exception as e:
             logger.error(f"Hisob-faktura ajratish xatosi: {str(e)}")
             return {'success': False, 'error': str(e)}
-    
-    def _extract_invoice_number(self, text: str) -> Optional[str]:
+
+    @staticmethod
+    def _extract_invoice_number(text: str) -> Optional[str]:
         """Hisob-faktura raqamini ajratib olish"""
         import re
         patterns = [
@@ -129,8 +130,9 @@ class OCRProcessor:
                 return match.group(1)
         
         return None
-    
-    def _extract_date(self, text: str) -> Optional[str]:
+
+    @staticmethod
+    def _extract_date(text: str) -> Optional[str]:
         """Sanani ajratib olish"""
         import re
         patterns = [
@@ -144,8 +146,9 @@ class OCRProcessor:
                 return match.group(1)
         
         return None
-    
-    def _extract_customer(self, text: str) -> Optional[str]:
+
+    @staticmethod
+    def _extract_customer(text: str) -> Optional[str]:
         """Mijozni ajratib olish"""
         import re
         
@@ -157,8 +160,9 @@ class OCRProcessor:
                     return lines[i + 1].strip()
         
         return None
-    
-    def _extract_amount(self, text: str) -> Optional[float]:
+
+    @staticmethod
+    def _extract_amount(text: str) -> Optional[float]:
         """Jami summani ajratib olish"""
         import re
         
@@ -177,8 +181,9 @@ class OCRProcessor:
                     pass
         
         return None
-    
-    def _extract_items(self, text: str) -> List[Dict]:
+
+    @staticmethod
+    def _extract_items(text: str) -> List[Dict]:
         """Mahsulotlarni ajratib olish"""
         import re
         
@@ -197,13 +202,12 @@ class OCRProcessor:
                     })
         
         return items
-    
+
     def process_multiple_invoices(self, folder_path: str) -> List[Dict]:
         """
         Papka'dagi barcha hisob-fakturalarni qayta ishlash
         """
         results = []
-        
         if not os.path.isdir(folder_path):
             logger.error(f"Papka topilmadi: {folder_path}")
             return results

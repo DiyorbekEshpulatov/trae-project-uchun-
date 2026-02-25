@@ -4,7 +4,6 @@
 Soliq Kabenitiga Hisobotlarni Yuborish Moduli
 Uzbekiston Davlat Soliq Komitetasining API-si bilan integratsiya
 """
-
 import requests
 import json
 from datetime import datetime
@@ -29,7 +28,8 @@ class TaxCabinetAPI:
             'Authorization': f'Bearer {self.api_key}'
         }
     
-    def _get_db_config(self, key):
+    @staticmethod
+    def _get_db_config(key):
         """Database'dan sozlamani olish (SystemConfig)"""
         try:
             from flask import has_app_context
