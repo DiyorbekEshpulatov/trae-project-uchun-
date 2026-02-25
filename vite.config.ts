@@ -18,7 +18,7 @@ export default defineConfig({
     },
   },
   server: {
-    // @ts-ignore
+    // @ts-expect-error
     allowedHosts: true,
   }
 });
