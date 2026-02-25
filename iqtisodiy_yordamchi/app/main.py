@@ -1433,8 +1433,6 @@ def create_account():
     db.session.add(account)
     db.session.commit()
     return jsonify({'id': account.id, 'message': 'Account qo\'shildi'}), 201
-        return jsonify({'id': account.id, 'message': 'Hisob qo\'shildi'}), 201
-
 
 # ==================== REPORTS ====================
 

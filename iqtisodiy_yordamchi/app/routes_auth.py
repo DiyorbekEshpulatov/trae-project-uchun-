@@ -56,8 +56,6 @@ def init_auth_routes(app, db, User, OTPCode, generate_otp, send_otp_sms):
                 'user_id': user.id,
                 'otp_id': otp.id
             }), 200
-            
-            return jsonify({'error': 'Noto\'g\'ri foydalanuvchi yoki parol'}), 401
 
         return render_template('login.html')
 
