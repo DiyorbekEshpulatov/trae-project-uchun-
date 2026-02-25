@@ -283,7 +283,7 @@ function searchObjects(query, type = null, category = null) {
     const matchesQuery = !query || 
       obj.name.toLowerCase().includes(query.toLowerCase()) ||
       obj.code.toLowerCase().includes(query.toLowerCase()) ||
-      (obj.barcode && obj.barcode.includes(query));
+      (obj.barcode?.includes(query));
     
     const matchesType = !type || obj.type === type;
     const matchesCategory = !category || obj.category === category;

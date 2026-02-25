@@ -329,12 +329,12 @@ function parseRange(range, currentRow, currentCol) {
 // Katak qiymatini olish
 function getCellValue(row, col, sheetName = 'Sheet1') {
   const sheet = EXCEL_DATA.sheets[sheetName];
-  if (sheet && sheet.data[row] && sheet.data[row][col] !== undefined) {
+  if (sheet?.data?.[row]?.[col] !== undefined) {
     const value = sheet.data[row][col];
     
     // Agar bu formula bo'lsa
     const cellKey = String.fromCharCode(65 + col) + (row + 1);
-    if (sheet.formulas && sheet.formulas[cellKey]) {
+    if (sheet.formulas?.[cellKey]) {
       return parseFormula(sheet.formulas[cellKey], row, col);
     }
     
