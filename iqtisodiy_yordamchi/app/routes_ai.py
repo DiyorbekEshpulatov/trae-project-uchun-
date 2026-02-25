@@ -181,7 +181,7 @@ def init_ai_routes(app, db, AIAssistant, AIFeedback, login_required):
         return jsonify({
             'total_questions': len(query),
             'avg_confidence': sum([q.confidence for q in query]) / len(query) if query else 0,
-            'categories': list(set([q.category for q in query])),
+            'categories': list({q.category for q in query}),
             'questions': [{
                 'id': q.id,
                 'question': q.question,
