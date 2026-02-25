@@ -34,7 +34,6 @@ load_dotenv()
 
 # Import extensions and models
 from app.extensions import db
-from app.models import *
 
 # Initialize OpenAI client
 openai_client = OpenAI(api_key=os.getenv('OPENAI_API_KEY', ''))
@@ -88,7 +87,7 @@ except Exception as e:
 
 try:
     from app.routes_tax import init_tax_routes
-    init_tax_routes(app, db, User, SalesOrder, Customer, Invoice, login_required, Report)
+    init_tax_routes(app, db, User, SalesOrder, Customer, Invoice, Report, login_required)
 except Exception as e:
     print(f"Tax routes not initialized: {e}")
 
@@ -1624,7 +1623,7 @@ def run_tests():
     print("\n" + "="*60)
     print("🧪 TEST SINOVI - SMART SAVDO ILOVASI")
     print("="*60 + "\n")
-    
+
     with app.app_context():
         # 1. DATABASE TEST
         print("📊 TEST 1: Database Ulanishi")
@@ -1645,8 +1644,9 @@ def run_tests():
             
             # Sales table test
             wb = excel_gen.create_sales_table(
-                period="2026-02",
+                db_session=db.session,
                 data={
+                    'period': "2026-02",
                     'sales_orders': [
                         {'order_id': '001', 'customer': 'ABC Corp', 'product': 'Product A', 'qty': 10, 'price': 100, 'discount': 5},
                         {'order_id': '002', 'customer': 'XYZ Inc', 'product': 'Product B', 'qty': 5, 'price': 200, 'discount': 0}
@@ -1659,8 +1659,9 @@ def run_tests():
             
             # Financial report test
             wb = excel_gen.create_financial_report(
-                period="2026-02",
-                financial_data={
+                db_session=db.session,
+                data={
+                    'period': "2026-02",
                     'income': 5000000,
                     'purchases': 2000000,
                     'salaries': 500000,
@@ -1682,13 +1683,16 @@ def run_tests():
             
             # Generate all forms
             forms = form_filler.generate_all_forms(
-                period="2026-02",
-                financial_data={'income': 5000000, 'expenses': 2000000, 'purchases': 1500000},
-                sales_data={'total': 5000000},
-                employees=[
-                    {'name': 'John', 'salary': 1000000},
-                    {'name': 'Jane', 'salary': 1200000}
-                ]
+                db_session=db.session,
+                data={
+                    'period': "2026-02",
+                    'financial_data': {'income': 5000000, 'expenses': 2000000, 'purchases': 1500000},
+                    'sales_data': {'total': 5000000},
+                    'employees': [
+                        {'name': 'John', 'salary': 1000000},
+                        {'name': 'Jane', 'salary': 1200000}
+                    ]
+                }
             )
             
             print("   ✅ Savdo hisobot formasi yaratildi")
@@ -1758,7 +1762,7 @@ def run_tests():
         print("📱 TEST 6: Telegram Bot")
         try:
             from app.telegram_bot import TelegramBot
-            bot = TelegramBot(token="test_token")
+            bot = TelegramBot(bot_token="test_token")
             print("   ✅ Telegram Bot yasalgan")
             print("   ℹ️  Xabarlarni yuborish uchun TELEGRAM_BOT_TOKEN kerak\n")
         except Exception as e:

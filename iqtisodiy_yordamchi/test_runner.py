@@ -10,32 +10,37 @@ import os
 # Add app directory to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'app'))
 
+def run_syntax_test():
+    print("📋 TEST 1: Python Fayllar Sintaksisi")
+    print("-" * 70)
+    import py_compile
+    import glob
+    import os
+
+    py_files = glob.glob('app/*.py')
+    errors = []
+
+    for py_file in py_files:
+        try:
+            py_compile.compile(py_file, doraise=True)
+            print(f"   ✅ {os.path.basename(py_file)}")
+        except py_compile.PyCompileError as e:
+            errors.append(f"{py_file}: {e}")
+            print(f"   ❌ {os.path.basename(py_file)}")
+
+    if not errors:
+        print(f"\n   ✅ Barcha {len(py_files)} ta fayl syntaksiga to'g'ri\n")
+    else:
+        for error in errors:
+            print(f"   ❌ {error}")
+
+
 def main():
     print("\n" + "="*70)
     print("🧪 SMART SAVDO ILOVASI - TOLIQ TEST SINOVI")
     print("="*70 + "\n")
     
-    # TEST 1: PYTHON SYNTAX CHECK
-    print("📋 TEST 1: Python Fayllar Sintaksisi")
-    print("-" * 70)
-    try:
-        import py_compile
-        import glob
-        
-        py_files = glob.glob('app/*.py')
-        errors = []
-        
-        for py_file in py_files:
-            try:
-                py_compile.compile(py_file, doraise=True)
-                print(f"   ✅ {os.path.basename(py_file)}")
-            except py_compile.PyCompileError as e:
-                errors.append(f"{py_file}: {e}")
-                print(f"   ❌ {os.path.basename(py_file)}")
-        
-        if not errors:
-            print(f"\n   ✅ Barcha {len(py_files)} ta fayl syntaksiga to'g'ri\n")
-        else:
+    run_syntax_test()
             print(f"\n   ❌ {len(errors)} ta xato topildi\n")
             for error in errors:
                 print(f"   - {error}\n")
@@ -137,7 +142,7 @@ def main():
     print("-" * 70)
     try:
         from app.telegram_bot import TelegramBot
-        bot = TelegramBot(token="dummy_token")
+        bot = TelegramBot(bot_token="dummy_token")
         print("   ✅ TelegramBot klasi yaratildi")
         print("   ℹ️  TELEGRAM_BOT_TOKEN .env'da kerak")
         print()

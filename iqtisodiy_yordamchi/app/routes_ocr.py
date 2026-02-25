@@ -286,7 +286,7 @@ def init_ocr_routes(app, db, User, login_required):
         except Exception as e:
             logger.error(f"Delete file error: {str(e)}")
             return jsonify({'error': str(e)}), 500
-    
+
     @ocr_bp.route('/export-results/<format>', methods=['POST'])
     @login_required
     def export_results(format):
@@ -303,7 +303,7 @@ def init_ocr_routes(app, db, User, login_required):
         """
         try:
             if format not in ['excel', 'json']:
-                return jsonify({'error': 'Noto'g'ri format'}), 400
+                return jsonify({'error': "Noto'g'ri format"}), 400
             
             data = request.get_json()
             results = data.get('results', [])
